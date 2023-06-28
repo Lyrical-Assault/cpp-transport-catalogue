@@ -1,7 +1,7 @@
 #include "input_reader.h"
 
 namespace transport_catalogue::input{
-        void InputReader(TransportCatalogue& catalogue, std::istream& input){
+        void ReadInput(TransportCatalogue& catalogue, std::istream& input){
             int num_req;
             input >> num_req;
             input.ignore();

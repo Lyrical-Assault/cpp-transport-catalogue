@@ -10,7 +10,7 @@ int main() {
     using namespace transport_catalogue;
     TransportCatalogue catalogue;
     tests::TransportCatalogueTest();
-    input::InputReader(catalogue, std::cin);
-    output::StatReader(catalogue, std::cin, std::cout);
+    input::ReadInput(catalogue, std::cin);
+    output::ReadAndOutputStats(catalogue, std::cin, std::cout);
     return 0;
 }

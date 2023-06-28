@@ -36,8 +36,8 @@ namespace transport_catalogue::tests{
         const auto stop_test = catalogue.FindStop("Stop 1");
         ASSERT_HINT(stop_test != nullptr, "Stop not added!");
         ASSERT_EQUAL_HINT(stop_test->name, "Stop 1", "Wrong stop name!");
-        ASSERT_EQUAL_HINT(stop_test->latitude, 33.3333, "Wrong coordinate!");
-        ASSERT_EQUAL_HINT(stop_test->longitude, 44.4444, "Wrong coordinate!");
+        ASSERT_EQUAL_HINT(stop_test->coordinates.lat, 33.3333, "Wrong coordinate!");
+        ASSERT_EQUAL_HINT(stop_test->coordinates.lng, 44.4444, "Wrong coordinate!");
     }
 
     void FindBus() {
@@ -63,8 +63,8 @@ namespace transport_catalogue::tests{
         const auto stop_test = catalogue.FindStop("Stop 1");
         ASSERT_HINT(stop_test != nullptr, "Stop not added!");
         ASSERT_EQUAL_HINT(stop_test->name, "Stop 1", "Wrong name of bus stop!");
-        ASSERT_EQUAL_HINT(stop_test->latitude, 33.3333, "Wrong latitude of bus stop!");
-        ASSERT_EQUAL_HINT(stop_test->longitude, 44.4444, "Wrong longitude of bus stop!");
+        ASSERT_EQUAL_HINT(stop_test->coordinates.lat, 33.3333, "Wrong latitude of bus stop!");
+        ASSERT_EQUAL_HINT(stop_test->coordinates.lng, 44.4444, "Wrong longitude of bus stop!");
         const auto non_stop = catalogue.FindStop("NonExisting");
         ASSERT_HINT(non_stop == nullptr, "Non existent stop found!");
     }
@@ -79,10 +79,10 @@ namespace transport_catalogue::tests{
         catalogue.SetDistance("Stop 3", "Stop 1", 3000);
         catalogue.AddBus("750", {"Stop 1", "Stop 2", "Stop 3", "Stop 2"});
         const auto info_test = catalogue.GetBusInfo("750");
-        ASSERT_EQUAL_HINT(std::get<0>(info_test), 4, "Wrong stops number!");
-        ASSERT_EQUAL_HINT(std::get<1>(info_test), 3, "Wrong unique-stops number!");
-        ASSERT_EQUAL_HINT(std::get<2>(info_test), 5000, "Wrong distance!");
-        ASSERT_HINT(std::abs(std::get<3>(info_test) - 0.0376269) < 1e-6, "Wrong curvature!");
+        ASSERT_EQUAL_HINT(info_test->stops_count, 4, "Wrong stops number!");
+        ASSERT_EQUAL_HINT(info_test->unique_stops_count, 3, "Wrong unique-stops number!");
+        ASSERT_EQUAL_HINT(info_test->distance, 5000, "Wrong distance!");
+        ASSERT_HINT(std::abs(info_test->curvature - 0.0376269) < 1e-6, "Wrong curvature!");
     }
     void GetStopInfo(){
         TransportCatalogue catalogue;
@@ -108,9 +108,9 @@ namespace transport_catalogue::tests{
         catalogue.AddStop("Stop 2", 55.789, 37.890);
         catalogue.AddStop("Stop 3", 55.555, 37.777);
         catalogue.SetDistance("Stop 1", "Stop 2", 10);
-        TransportCatalogue::Stop* stop1 = catalogue.FindStop("Stop 1");
-        TransportCatalogue::Stop* stop2 = catalogue.FindStop("Stop 2");
-        TransportCatalogue::Stop* stop3 = catalogue.FindStop("Stop 3");
+        const Stop* stop1 = catalogue.FindStop("Stop 1");
+        const Stop* stop2 = catalogue.FindStop("Stop 2");
+        const Stop* stop3 = catalogue.FindStop("Stop 3");
         ASSERT_HINT(catalogue.GetDistance(stop1, stop2) == 10, "Wrong distance!");
         ASSERT_HINT(catalogue.GetDistance(stop2, stop3) == 0, "Wrong distance!");
     }
@@ -119,10 +119,10 @@ namespace transport_catalogue::tests{
         catalogue.AddStop("Stop 1", 55.123, 37.456);
         catalogue.AddStop("Stop 2", 55.789, 37.890);
         catalogue.SetDistance("Stop 1", "Stop 2", 10);
-        TransportCatalogue::Stop* stop1 = catalogue.FindStop("Stop 1");
-        TransportCatalogue::Stop* stop2 = catalogue.FindStop("Stop 2");
+        const Stop* stop1 = catalogue.FindStop("Stop 1");
+        const Stop* stop2 = catalogue.FindStop("Stop 2");
         ASSERT_HINT(catalogue.GetDistance(stop1, stop2) == 10, "Wrong distance!");
-        TransportCatalogue::Stop* stop3 = catalogue.FindStop("NonExisting");
+        const Stop* stop3 = catalogue.FindStop("NonExisting");
         ASSERT_HINT(stop3 == nullptr, "Non existent stop found!");
         ASSERT_HINT(catalogue.GetDistance(stop1, stop3) == 0, "Wrong distance!");
     }

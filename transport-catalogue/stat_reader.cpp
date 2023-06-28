@@ -1,7 +1,7 @@
 #include "stat_reader.h"
 
 namespace transport_catalogue::output{
-    void StatReader(const TransportCatalogue& catalogue, std::istream& input, std::ostream& output){
+    void ReadAndOutputStats(const TransportCatalogue& catalogue, std::istream& input, std::ostream& output){
         int num_req;
         input >> num_req;
         input.ignore();
@@ -15,10 +15,10 @@ namespace transport_catalogue::output{
                 }
                 else{
                     auto bus_info = catalogue.GetBusInfo(name);
-                    output << "Bus " << name << ": " << std::get<0>(bus_info)<< " stops on route, "
-                           << std::get<1>(bus_info) << " unique stops, "
-                           << std::setprecision(6) << std::get<2>(bus_info) << " route length, "
-                           << std::get<3>(bus_info) << " curvature" << std::endl;
+                    output << "Bus " << name << ": " << bus_info->stops_count << " stops on route, "
+                           << bus_info->unique_stops_count << " unique stops, "
+                           << std::setprecision(6) << bus_info->distance << " route length, "
+                           << bus_info->curvature << " curvature" << std::endl;
                 }
             }else if (query.substr(0, 4) == "Stop") {
                 std::string name = query.substr(5);
