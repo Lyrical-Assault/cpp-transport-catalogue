@@ -1,16 +1,18 @@
 #pragma once
 
+#include "transport_catalogue.h"
+#include "request_handler.h"
+#include "json_reader.h"
+
 #include <numeric>
 #include <cassert>
 #include <stdexcept>
 #include <string_view>
 #include <iostream>
 #include <iomanip>
-#include "transport_catalogue.h"
+#include <chrono>
 
 using std::string_literals::operator""s;
-
-namespace transport_catalogue::tests {
 
 #define ASSERT_EQUAL(a, b) AssertEqualImpl((a), (b), #a, #b, __FILE__, __FUNCTION__, __LINE__, ""s)
 
@@ -48,13 +50,42 @@ namespace transport_catalogue::tests {
             abort();
         }
     }
-        void AddStop();
-        void AddBus();
-        void FindStop();
-        void FindBus();
-        void GetBusInfo();
-        void GetStopInfo();
-        void SetDistance();
-        void GetDistance();
-        void TransportCatalogueTest();
+namespace transport_catalogue::tests {
+
+    void AddStop();
+    void AddBus();
+    void FindStop();
+    void FindBus();
+    void SetDistance();
+    void GetDistance();
+    void TransportCatalogueTest();
+}
+
+namespace request_handler::tests {
+
+    void GetBusInfo();
+    void GetBusesByStop();
+    void RenderMap();
+    void RequestHandlerTest();
+}
+
+namespace json::tests {
+
+    void TestNull();
+    void TestNumbers();
+    void TestStrings();
+    void TestBool();
+    void TestArray();
+    void TestMap();
+    void TestErrorHandling();
+    void Benchmark();
+    void Tests();
+    void JsonTests();
+
+    void StopProcessing();
+    void BusProcessing();
+    void ParseBus();
+    void ParseStop();
+    void ParseMap();
+    void JsonReader();
 }

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "geo.h"
+#include "domain.h"
+
 #include <deque>
 #include <string>
 #include <string_view>
@@ -10,26 +13,8 @@
 #include <unordered_set>
 #include <tuple>
 #include <optional>
-#include "geo.h"
 
 namespace transport_catalogue{
-
-    struct BusInfo {
-        int stops_count;
-        int unique_stops_count;
-        int distance;
-        double curvature;
-    };
-
-    struct Stop{
-        std::string name;
-        detail::Coordinates coordinates;
-    };
-
-    struct Bus{
-        std::string name;
-        std::vector<const Stop*> stops;
-    };
 
     class TransportCatalogue{
     private:
@@ -63,12 +48,12 @@ namespace transport_catalogue{
     public:
         void AddStop(std::string_view name, double latitude, double longitude);
         const Stop* FindStop(const std::string& name) const;
-        void AddBus(std::string_view name, const std::vector<std::string>& stops);
+        void AddBus(std::string_view name, const std::vector<std::string>& stops, bool is_roundtrip);
         const Bus* FindBus(const std::string& name) const;
-        std::optional<BusInfo> GetBusInfo(const std::string& name) const;
-        std::vector<std::string> GetStopInfo(const std::string& name) const;
         void SetDistance(const std::string& src_name, const std::string& dest_name, int dist);
         int GetDistance(const Stop* src, const Stop* dest) const;
+        const std::unordered_map<std::string_view, const Bus*, TransportCatalogueHasher>& GetIndexRoutes() const;
+        const std::unordered_map<const Stop*, std::unordered_set<const Bus*>, TransportCatalogueHasher>& GetBusesByStop() const;
 
     private:
         std::deque<Stop> bus_stops_;
