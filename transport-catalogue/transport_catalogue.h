@@ -14,8 +14,7 @@
 #include <tuple>
 #include <optional>
 
-namespace transport_catalogue{
-
+namespace tc_project::transport_catalogue{
     class TransportCatalogue{
     private:
         struct TransportCatalogueHasher {
@@ -47,20 +46,32 @@ namespace transport_catalogue{
 
     public:
         void AddStop(std::string_view name, double latitude, double longitude);
+
         const Stop* FindStop(const std::string& name) const;
+
         void AddBus(std::string_view name, const std::vector<std::string>& stops, bool is_roundtrip);
+
         const Bus* FindBus(const std::string& name) const;
+
         void SetDistance(const std::string& src_name, const std::string& dest_name, int dist);
+
         int GetDistance(const Stop* src, const Stop* dest) const;
+
         const std::unordered_map<std::string_view, const Bus*, TransportCatalogueHasher>& GetIndexRoutes() const;
+
         const std::unordered_map<const Stop*, std::unordered_set<const Bus*>, TransportCatalogueHasher>& GetBusesByStop() const;
 
     private:
         std::deque<Stop> bus_stops_;
+
         std::unordered_map<std::string_view, const Stop*, TransportCatalogueHasher> index_bus_stops_;
+
         std::deque<Bus> routes_;
+
         std::unordered_map<std::string_view, const Bus*, TransportCatalogueHasher> index_routes_;
+
         std::unordered_map<const Stop*, std::unordered_set<const Bus*>, TransportCatalogueHasher> index_stop_to_buses_;
+
         std::unordered_map<std::pair<const Stop*, const Stop*>, int, TransportCatalogueHasher> index_stops_distance_;
     };
 }

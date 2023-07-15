@@ -11,8 +11,9 @@
 #include <utility>
 #include <vector>
 #include <variant>
+#include <unordered_map>
 
-namespace map_renderer {
+namespace tc_project::map_renderer {
 
     struct RenderSettings {
         double width;
@@ -35,7 +36,7 @@ namespace map_renderer {
     public:
         MapRenderer() = default;
 
-        MapRenderer(RenderSettings settings) : settings_(std::move(settings)) {
+        explicit MapRenderer(RenderSettings settings) : settings_(std::move(settings)) {
         }
 
         std::vector<svg::Circle> StopsCircleRender(const std::vector<const Stop*>& stops) const;
@@ -46,8 +47,9 @@ namespace map_renderer {
 
         std::vector<svg::Text> BusesTextRender(const std::vector<const Bus*>& buses) const;
 
-    private:
+        svg::Document MapRender(const std::vector<const Bus*>& buses) const;
 
+    private:
         RenderSettings settings_;
     };
 

@@ -1,17 +1,19 @@
 #include "json_reader.h"
 
-namespace json {
+using namespace::std::literals::string_view_literals;
+
+namespace tc_project::json_reader {
 
     Document LoadJSON(const std::string &s) {
         std::istringstream strm(s);
-        return Load(strm);
+        return json::Load(strm);
     }
 
     void RequestsProcessing(transport_catalogue::TransportCatalogue &catalogue, map_renderer::MapRenderer& renderer, std::istream& input, std::ostream& output) {
         std::vector<Dict> base_requests;
         std::vector<Dict> stat_requests;
         Dict render_settings;
-        auto json_data = Load(input);
+        auto json_data = json::Load(input);
         for (const auto &[key, value]: json_data.GetRoot().AsMap()) {
             if (key == "base_requests"sv) {
                 for (const auto &base_data: value.AsArray()) {
@@ -56,48 +58,36 @@ namespace json {
                     settings.stop_label_offset.push_back(coord.AsDouble());
                 }
             } else if(param == "underlayer_color"sv) {
-                if(data.IsString()){
-                    settings.underlayer_color = data.AsString();
-                } else if(data.IsArray()) {
-                    if(data.AsArray().size() == 3) {
-                        settings.underlayer_color = svg::Rgb {
-                                static_cast<uint8_t>(data.AsArray()[0].AsInt()),
-                                static_cast<uint8_t>(data.AsArray()[1].AsInt()),
-                                static_cast<uint8_t>(data.AsArray()[2].AsInt())};
-                    }
-                    else if(data.AsArray().size() == 4) {
-                        settings.underlayer_color = svg::Rgba {
-                                static_cast<uint8_t>(data.AsArray()[0].AsInt()),
-                                static_cast<uint8_t>(data.AsArray()[1].AsInt()),
-                                static_cast<uint8_t>(data.AsArray()[2].AsInt()),
-                                data.AsArray()[3].AsDouble()};
-                    }
-                }
+                ParseColor(data, settings);
             } else if(param == "underlayer_width"sv) {
                 settings.underlayer_width = data.AsDouble();
             } else if(param == "color_palette"sv) {
                 for(const auto& color : data.AsArray()) {
-                    if(color.IsString()){
-                        settings.color_palette.emplace_back(color.AsString());
-                    } else if(color.IsArray()) {
-                        if(color.AsArray().size() == 3) {
-                            settings.color_palette.emplace_back(svg::Rgb {
-                                    static_cast<uint8_t>(color.AsArray()[0].AsInt()),
-                                    static_cast<uint8_t>(color.AsArray()[1].AsInt()),
-                                    static_cast<uint8_t>(color.AsArray()[2].AsInt())});
-                        }
-                        else if(color.AsArray().size() == 4) {
-                            settings.color_palette.emplace_back(svg::Rgba {
-                                    static_cast<uint8_t>(color.AsArray()[0].AsInt()),
-                                    static_cast<uint8_t>(color.AsArray()[1].AsInt()),
-                                    static_cast<uint8_t>(color.AsArray()[2].AsInt()),
-                                    color.AsArray()[3].AsDouble()});
-                        }
-                    }
+                    ParseColor(color, settings);
                 }
             }
         }
         renderer = map_renderer::MapRenderer{std::move(settings)};
+    }
+
+    void ParseColor(const Node& color, map_renderer::RenderSettings& settings) {
+        if(color.IsString()){
+            settings.color_palette.emplace_back(color.AsString());
+        } else if(color.IsArray()) {
+            if(color.AsArray().size() == 3) {
+                settings.color_palette.emplace_back(svg::Rgb {
+                        static_cast<uint8_t>(color.AsArray()[0].AsInt()),
+                        static_cast<uint8_t>(color.AsArray()[1].AsInt()),
+                        static_cast<uint8_t>(color.AsArray()[2].AsInt())});
+            }
+            else if(color.AsArray().size() == 4) {
+                settings.color_palette.emplace_back(svg::Rgba {
+                        static_cast<uint8_t>(color.AsArray()[0].AsInt()),
+                        static_cast<uint8_t>(color.AsArray()[1].AsInt()),
+                        static_cast<uint8_t>(color.AsArray()[2].AsInt()),
+                        color.AsArray()[3].AsDouble()});
+            }
+        }
     }
 
     void BasesProcessing(transport_catalogue::TransportCatalogue &catalogue, std::vector<Dict> &&base_requests) {

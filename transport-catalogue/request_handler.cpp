@@ -1,6 +1,6 @@
 #include "request_handler.h"
 
-namespace request_handler {
+namespace tc_project::request_handler {
 
     RequestHandler::RequestHandler(const transport_catalogue::TransportCatalogue& db, const map_renderer::MapRenderer& renderer)
                                     : db_(db), renderer_(renderer) {
@@ -44,31 +44,11 @@ namespace request_handler {
     }
 
     svg::Document RequestHandler::RenderMap() const {
-        svg::Document doc;
         auto info = db_.GetIndexRoutes();
-        std::vector<const Bus*> sorted_buses;
-        std::vector<const Stop*> sorted_stops;
-        for(const auto& [_, bus_ptr] : info) {
-            sorted_buses.push_back(bus_ptr);
-            sorted_stops.insert(sorted_stops.end(), bus_ptr->stops.begin(), bus_ptr->stops.end());
+        std::vector<const Bus*> buses;
+        for(const auto [name, bus_ptr] : info) {
+            buses.push_back(bus_ptr);
         }
-        std::sort(sorted_buses.begin(), sorted_buses.end(),
-                  [](const Bus* a, const Bus* b) { return a->name < b->name; });
-        std::sort(sorted_stops.begin(), sorted_stops.end(),
-                  [](const Stop* a, const Stop* b) { return a->name < b->name; });
-        sorted_stops.erase(std::unique(sorted_stops.begin(), sorted_stops.end()), sorted_stops.end());
-        for(const auto& line : renderer_.BusesLineRender(sorted_buses)) {
-            doc.Add(line);
-        }
-        for(const auto& text : renderer_.BusesTextRender(sorted_buses)) {
-            doc.Add(text);
-        }
-        for(const auto& point : renderer_.StopsCircleRender(sorted_stops)) {
-            doc.Add(point);
-        }
-        for(const auto& text : renderer_.StopsTextRender(sorted_stops)) {
-            doc.Add(text);
-        }
-        return doc;
+        return renderer_.MapRender(buses);
     }
 }

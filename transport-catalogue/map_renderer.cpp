@@ -1,6 +1,6 @@
 #include "map_renderer.h"
 
-namespace map_renderer {
+namespace tc_project::map_renderer {
 
     bool IsZero(double value) {
         return std::abs(value) < EPSILON;
@@ -160,5 +160,33 @@ namespace map_renderer {
             color_index = (color_index + 1) % settings_.color_palette.size();
         }
         return result;
+    }
+
+    svg::Document MapRenderer::MapRender(const std::vector<const Bus*>& buses) const {
+        svg::Document doc;
+        std::vector<const Bus*> sorted_buses;
+        std::vector<const Stop*> sorted_stops;
+        for(auto bus_ptr : buses) {
+            sorted_buses.push_back(bus_ptr);
+            sorted_stops.insert(sorted_stops.end(), bus_ptr->stops.begin(), bus_ptr->stops.end());
+        }
+        std::sort(sorted_buses.begin(), sorted_buses.end(),
+                  [](const Bus* a, const Bus* b) { return a->name < b->name; });
+        std::sort(sorted_stops.begin(), sorted_stops.end(),
+                  [](const Stop* a, const Stop* b) { return a->name < b->name; });
+        sorted_stops.erase(std::unique(sorted_stops.begin(), sorted_stops.end()), sorted_stops.end());
+        for(const auto& line : BusesLineRender(sorted_buses)) {
+            doc.Add(line);
+        }
+        for(const auto& text : BusesTextRender(sorted_buses)) {
+            doc.Add(text);
+        }
+        for(const auto& point : StopsCircleRender(sorted_stops)) {
+            doc.Add(point);
+        }
+        for(const auto& text : StopsTextRender(sorted_stops)) {
+            doc.Add(text);
+        }
+        return doc;
     }
 }

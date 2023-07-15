@@ -11,7 +11,14 @@
 #include <vector>
 #include <tuple>
 
-namespace json {
+namespace tc_project::json_reader {
+
+    using json::Document;
+
+    using json::Dict;
+
+    using json::Node;
+
     Document LoadJSON(const std::string& s);
 
     std::string Shielding(const std::string& str);
@@ -32,5 +39,8 @@ namespace json {
 
     void RenderProcessing(map_renderer::MapRenderer& renderer, Dict&&  render_settings);
 
+    void ParseColor(const Node& color, map_renderer::RenderSettings& settings);
+
     void ParseMap(const transport_catalogue::TransportCatalogue &catalogue, const map_renderer::MapRenderer& renderer, int id, std::vector<std::string>& parse_data);
+
 }

@@ -1,6 +1,6 @@
 #include "transport_catalogue.h"
 
-namespace transport_catalogue{
+namespace tc_project::transport_catalogue {
     void TransportCatalogue::AddStop(std::string_view name, const double latitude, const double longitude) {
         bus_stops_.push_back({std::string(name), latitude, longitude});
         Stop* new_stop = &bus_stops_.back();

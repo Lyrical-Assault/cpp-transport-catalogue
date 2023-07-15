@@ -1,12 +1,12 @@
 #include "json.h"
 
-using namespace std;
+using namespace::std::literals::string_view_literals;
 
 namespace json {
 
     namespace {
 
-        Node LoadNode(istream& input);
+        Node LoadNode(std::istream& input);
 
         Node LoadBool(std::istream& input) {
             char c;
@@ -164,7 +164,7 @@ namespace json {
             return Node(std::move(s));
         }
 
-        Node LoadArray(istream& input) {
+        Node LoadArray(std::istream& input) {
             Array result;
             char c{};
             input >> c;
@@ -181,7 +181,7 @@ namespace json {
             return Node(std::move(result));
         }
 
-        Node LoadDict(istream& input) {
+        Node LoadDict(std::istream& input) {
             Dict result;
             char c{};
             input >> c;
@@ -193,7 +193,7 @@ namespace json {
                 if (c == ',') {
                     input >> c;
                 }
-                string key = LoadString(input).AsString();
+                std::string key = LoadString(input).AsString();
                 input >> c;
                 result.insert({move(key), LoadNode(input)});
             }
@@ -201,7 +201,7 @@ namespace json {
             return Node(std::move(result));
         }
 
-        Node LoadNode(istream& input) {
+        Node LoadNode(std::istream& input) {
             char c;
             input >> c;
             if (c == '[') {
@@ -321,7 +321,7 @@ namespace json {
         }
     }
 
-    const string& Node::AsString() const {
+    const std::string& Node::AsString() const {
         if (Node::IsString()) {
             return std::get<std::string>(value_);
         } else {
@@ -393,7 +393,7 @@ namespace json {
         return root_;
     }
 
-    Document Load(istream& input) {
+    Document Load(std::istream& input) {
         return Document{LoadNode(input)};
     }
 

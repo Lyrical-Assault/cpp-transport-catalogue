@@ -1,5 +1,7 @@
 #include "test_functions.h"
 
+using namespace::std::literals::string_view_literals;
+
     void AssertImpl(bool value, const std::string& expr_str, const std::string& file, const std::string& func, unsigned line,
                     const std::string& hint) {
         if (!value) {
@@ -12,7 +14,7 @@
             abort();
         }
     }
-namespace transport_catalogue::tests{
+namespace tc_project::transport_catalogue::tests{
 
     void AddBus() {
         TransportCatalogue catalogue;
@@ -102,7 +104,7 @@ namespace transport_catalogue::tests{
     }
 }
 
-namespace request_handler::tests {
+namespace tc_project::request_handler::tests {
 
     void GetBusInfo() {
         map_renderer::MapRenderer render;
@@ -177,7 +179,6 @@ namespace request_handler::tests {
 }
 
 namespace json::tests {
-
     json::Document LoadJSON(const std::string& s) {
         std::istringstream strm(s);
         return json::Load(strm);
@@ -444,10 +445,14 @@ namespace json::tests {
         RUN_TEST(Tests);
     };
 
+}
+
+namespace tc_project::json_reader::tests {
+
     void StopProcessing() {
         transport_catalogue::TransportCatalogue catalogue;
         catalogue.AddStop("Морской вокзал", 43.581969, 39.719848);
-        std::map<std::string, std::map<std::string, Node>> road_distances{};
+        std::map<std::string, std::map<std::string, ::json::Node>> road_distances{};
         std::string json = "{\n"
                            "      \"type\": \"Stop\",\n"
                            "      \"name\": \"Ривьерский мост\",\n"
@@ -456,7 +461,7 @@ namespace json::tests {
                            "      \"road_distances\": {\"Морской вокзал\": 850}\n"
                            "    }";
         auto stop = LoadJSON(json).GetRoot().AsMap();
-        json::StopProcessing(catalogue, stop, road_distances);
+        json_reader::StopProcessing(catalogue, stop, road_distances);
         auto stop_test = catalogue.FindStop("Ривьерский мост");
         ASSERT_HINT(stop_test != nullptr, "Stop not added!");
         ASSERT_EQUAL_HINT(stop_test->name, "Ривьерский мост", "Wrong stop name!");
@@ -475,7 +480,7 @@ namespace json::tests {
                            "      \"is_roundtrip\": false\n"
                            "    }";
         auto bus = LoadJSON(json).GetRoot().AsMap();
-        json::BusProcessing(catalogue, bus);
+        json_reader::BusProcessing(catalogue, bus);
         auto bus_test = catalogue.FindBus("114");
         ASSERT_HINT(bus_test != nullptr, "Bus not added!");
         ASSERT_EQUAL_HINT(bus_test->name, "114", "Wrong bus name!");
@@ -491,10 +496,10 @@ namespace json::tests {
         std::vector<std::string> parse_data;
         catalogue.AddStop("Морской вокзал", 43.581969, 39.719848);
         catalogue.AddStop("Улица Докучаева", 43.585586, 39.733879);
-        json::ParseStop(catalogue, render, "Электросети", 1, parse_data);
-        json::ParseStop(catalogue, render, "Морской вокзал", 2, parse_data);
+        json_reader::ParseStop(catalogue, render, "Электросети", 1, parse_data);
+        json_reader::ParseStop(catalogue, render, "Морской вокзал", 2, parse_data);
         catalogue.AddBus("14", {"Улица Докучаева", "Морской вокзал"}, true);
-        json::ParseStop(catalogue, render, "Улица Докучаева", 3, parse_data);
+        json_reader::ParseStop(catalogue, render, "Улица Докучаева", 3, parse_data);
         std::string test1 = "{\n"
                             "\"request_id\": 1,\n"
                             "\"error_message\": \"not found\"\n"
@@ -521,8 +526,8 @@ namespace json::tests {
         catalogue.AddStop("Улица Докучаева", 43.585586, 39.733879);
         catalogue.SetDistance("Морской вокзал", "Улица Докучаева", 850);
         catalogue.AddBus("14", {"Улица Докучаева", "Морской вокзал"}, true);
-        json::ParseBus(catalogue, render, "114", 1, parse_data);
-        json::ParseBus(catalogue, render, "14", 2, parse_data);
+        json_reader::ParseBus(catalogue, render, "114", 1, parse_data);
+        json_reader::ParseBus(catalogue, render, "14", 2, parse_data);
         std::string test1 = "{\n"
                             "\"request_id\": 1,\n"
                             "\"error_message\": \"not found\"\n"
@@ -550,7 +555,7 @@ namespace json::tests {
         catalogue.AddStop("Улица Докучаева", 43.585586, 39.733879);
         catalogue.SetDistance("Морской вокзал", "Улица Докучаева", 850);
         catalogue.AddBus("14", {"Улица Докучаева", "Морской вокзал"}, true);
-        json::ParseMap(catalogue, render, 1, parse_data);
+        json_reader::ParseMap(catalogue, render, 1, parse_data);
         std::string test = "{\n"
                            "\"request_id\": 1,\n"
                            "\"map\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\" ?>\\n<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" version=\\\"1.1\\\">\\n  <polyline points=\\\"550,50 50,178.893\\\" fill=\\\"none\\\" stroke=\\\"green\\\" stroke-width=\\\"5\\\" stroke-linecap=\\\"round\\\" stroke-linejoin=\\\"round\\\"/>\\n  <text fill=\\\"255, 255, 255, 0.85\\\" stroke=\\\"255, 255, 255, 0.85\\\" stroke-width=\\\"3\\\" stroke-linecap=\\\"round\\\" stroke-linejoin=\\\"round\\\" x=\\\"550\\\" y=\\\"50\\\" dx=\\\"7\\\" dy=\\\"15\\\" font-size=\\\"20\\\" font-family=\\\"Verdana\\\" font-weight=\\\"bold\\\">14</text>\\n  <text fill=\\\"green\\\" x=\\\"550\\\" y=\\\"50\\\" dx=\\\"7\\\" dy=\\\"15\\\" font-size=\\\"20\\\" font-family=\\\"Verdana\\\" font-weight=\\\"bold\\\">14</text>\\n  <circle cx=\\\"50\\\" cy=\\\"178.893\\\" r=\\\"14\\\" fill=\\\"white\\\"/>\\n  <circle cx=\\\"550\\\" cy=\\\"50\\\" r=\\\"14\\\" fill=\\\"white\\\"/>\\n  <text fill=\\\"255, 255, 255, 0.85\\\" stroke=\\\"255, 255, 255, 0.85\\\" stroke-width=\\\"3\\\" stroke-linecap=\\\"round\\\" stroke-linejoin=\\\"round\\\" x=\\\"50\\\" y=\\\"178.893\\\" dx=\\\"7\\\" dy=\\\"-3\\\" font-size=\\\"20\\\" font-family=\\\"Verdana\\\">Морской вокзал</text>\\n  <text fill=\\\"black\\\" x=\\\"50\\\" y=\\\"178.893\\\" dx=\\\"7\\\" dy=\\\"-3\\\" font-size=\\\"20\\\" font-family=\\\"Verdana\\\">Морской вокзал</text>\\n  <text fill=\\\"255, 255, 255, 0.85\\\" stroke=\\\"255, 255, 255, 0.85\\\" stroke-width=\\\"3\\\" stroke-linecap=\\\"round\\\" stroke-linejoin=\\\"round\\\" x=\\\"550\\\" y=\\\"50\\\" dx=\\\"7\\\" dy=\\\"-3\\\" font-size=\\\"20\\\" font-family=\\\"Verdana\\\">Улица Докучаева</text>\\n  <text fill=\\\"black\\\" x=\\\"550\\\" y=\\\"50\\\" dx=\\\"7\\\" dy=\\\"-3\\\" font-size=\\\"20\\\" font-family=\\\"Verdana\\\">Улица Докучаева</text>\\n</svg>\"\n"

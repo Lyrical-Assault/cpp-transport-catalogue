@@ -50,7 +50,7 @@ using std::string_literals::operator""s;
             abort();
         }
     }
-namespace transport_catalogue::tests {
+namespace tc_project::transport_catalogue::tests {
 
     void AddStop();
     void AddBus();
@@ -61,7 +61,7 @@ namespace transport_catalogue::tests {
     void TransportCatalogueTest();
 }
 
-namespace request_handler::tests {
+namespace tc_project::request_handler::tests {
 
     void GetBusInfo();
     void GetBusesByStop();
@@ -70,7 +70,6 @@ namespace request_handler::tests {
 }
 
 namespace json::tests {
-
     void TestNull();
     void TestNumbers();
     void TestStrings();
@@ -81,6 +80,9 @@ namespace json::tests {
     void Benchmark();
     void Tests();
     void JsonTests();
+}
+
+namespace tc_project::json_reader::tests {
 
     void StopProcessing();
     void BusProcessing();
