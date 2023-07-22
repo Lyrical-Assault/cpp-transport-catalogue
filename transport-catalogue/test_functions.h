@@ -24,32 +24,32 @@ using std::string_literals::operator""s;
 
 #define RUN_TEST(func)  RunTestImpl(func, #func)
 
-    template<typename Func>
-    void RunTestImpl(Func func, const std::string &str_func) {
-        func();
-        std::cerr << str_func << " OK"s << std::endl;
-    }
+template<typename Func>
+void RunTestImpl(Func func, const std::string &str_func) {
+    func();
+    std::cerr << str_func << " OK"s << std::endl;
+}
 
-    void
-    AssertImpl(bool value, const std::string &expr_str, const std::string &file, const std::string &func, unsigned line,
-               const std::string &hint);
+void
+AssertImpl(bool value, const std::string &expr_str, const std::string &file, const std::string &func, unsigned line,
+           const std::string &hint);
 
-    template<typename T, typename U>
-    void
-    AssertEqualImpl(const T &t, const U &u, const std::string &t_str, const std::string &u_str, const std::string &file,
-                    const std::string &func, unsigned line, const std::string &hint) {
-        if (t != u) {
-            std::cerr << std::boolalpha;
-            std::cerr << file << "("s << line << "): "s << func << ": "s;
-            std::cerr << "ASSERT_EQUAL("s << t_str << ", "s << u_str << ") failed: "s;
-            std::cerr << t << " != "s << u << "."s;
-            if (!hint.empty()) {
-                std::cerr << " Hint: "s << hint;
-            }
-            std::cerr << std::endl;
-            abort();
+template<typename T, typename U>
+void
+AssertEqualImpl(const T &t, const U &u, const std::string &t_str, const std::string &u_str, const std::string &file,
+                const std::string &func, unsigned line, const std::string &hint) {
+    if (t != u) {
+        std::cerr << std::boolalpha;
+        std::cerr << file << "("s << line << "): "s << func << ": "s;
+        std::cerr << "ASSERT_EQUAL("s << t_str << ", "s << u_str << ") failed: "s;
+        std::cerr << t << " != "s << u << "."s;
+        if (!hint.empty()) {
+            std::cerr << " Hint: "s << hint;
         }
+        std::cerr << std::endl;
+        abort();
     }
+}
 namespace tc_project::transport_catalogue::tests {
 
     void AddStop();

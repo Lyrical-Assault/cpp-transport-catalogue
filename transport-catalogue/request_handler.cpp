@@ -3,7 +3,7 @@
 namespace tc_project::request_handler {
 
     RequestHandler::RequestHandler(const transport_catalogue::TransportCatalogue& db, const map_renderer::MapRenderer& renderer)
-                                    : db_(db), renderer_(renderer) {
+            : db_(db), renderer_(renderer) {
     }
 
     std::optional<BusInfo> RequestHandler::GetBusInfo(const std::string_view& name) const {

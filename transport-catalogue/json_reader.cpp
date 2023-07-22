@@ -4,27 +4,22 @@ using namespace::std::literals::string_view_literals;
 
 namespace tc_project::json_reader {
 
-    Document LoadJSON(const std::string &s) {
-        std::istringstream strm(s);
-        return json::Load(strm);
-    }
-
     void RequestsProcessing(transport_catalogue::TransportCatalogue &catalogue, map_renderer::MapRenderer& renderer, std::istream& input, std::ostream& output) {
         std::vector<Dict> base_requests;
         std::vector<Dict> stat_requests;
         Dict render_settings;
         auto json_data = json::Load(input);
-        for (const auto &[key, value]: json_data.GetRoot().AsMap()) {
+        for (const auto &[key, value]: json_data.GetRoot().AsDict()) {
             if (key == "base_requests"sv) {
                 for (const auto &base_data: value.AsArray()) {
-                    base_requests.push_back(base_data.AsMap());
+                    base_requests.push_back(base_data.AsDict());
                 }
             } else if (key == "stat_requests"sv) {
                 for (const auto &stat_data: value.AsArray()) {
-                    stat_requests.push_back(stat_data.AsMap());
+                    stat_requests.push_back(stat_data.AsDict());
                 }
             } else if (key == "render_settings"sv) {
-                render_settings = value.AsMap();
+                render_settings = value.AsDict();
             }
         }
         BasesProcessing(catalogue, std::move(base_requests));
@@ -32,7 +27,7 @@ namespace tc_project::json_reader {
         StatProcessing(catalogue, renderer, std::move(stat_requests), output);
     }
 
-    void RenderProcessing(map_renderer::MapRenderer& renderer, Dict&&  json_render_settings) {
+    void RenderProcessing(map_renderer::MapRenderer& renderer,Dict&&  json_render_settings) {
         map_renderer::RenderSettings settings;
         for(const auto& [param, data] : json_render_settings) {
             if(param == "width"sv) {
@@ -58,36 +53,48 @@ namespace tc_project::json_reader {
                     settings.stop_label_offset.push_back(coord.AsDouble());
                 }
             } else if(param == "underlayer_color"sv) {
-                ParseColor(data, settings);
+                if(data.IsString()){
+                    settings.underlayer_color = data.AsString();
+                } else if(data.IsArray()) {
+                    if(data.AsArray().size() == 3) {
+                        settings.underlayer_color = svg::Rgb{
+                                static_cast<uint8_t>(data.AsArray()[0].AsInt()),
+                                static_cast<uint8_t>(data.AsArray()[1].AsInt()),
+                                static_cast<uint8_t>(data.AsArray()[2].AsInt())};
+                    }
+                    else if(data.AsArray().size() == 4) {
+                        settings.underlayer_color = svg::Rgba{
+                                static_cast<uint8_t>(data.AsArray()[0].AsInt()),
+                                static_cast<uint8_t>(data.AsArray()[1].AsInt()),
+                                static_cast<uint8_t>(data.AsArray()[2].AsInt()),
+                                data.AsArray()[3].AsDouble()};
+                    }
+                }
             } else if(param == "underlayer_width"sv) {
                 settings.underlayer_width = data.AsDouble();
             } else if(param == "color_palette"sv) {
                 for(const auto& color : data.AsArray()) {
-                    ParseColor(color, settings);
+                    if(color.IsString()){
+                        settings.color_palette.emplace_back(color.AsString());
+                    } else if(color.IsArray()) {
+                        if(color.AsArray().size() == 3) {
+                            settings.color_palette.emplace_back(svg::Rgb{
+                                    static_cast<uint8_t>(color.AsArray()[0].AsInt()),
+                                    static_cast<uint8_t>(color.AsArray()[1].AsInt()),
+                                    static_cast<uint8_t>(color.AsArray()[2].AsInt())});
+                        }
+                        else if(color.AsArray().size() == 4) {
+                            settings.color_palette.emplace_back(svg::Rgba{
+                                    static_cast<uint8_t>(color.AsArray()[0].AsInt()),
+                                    static_cast<uint8_t>(color.AsArray()[1].AsInt()),
+                                    static_cast<uint8_t>(color.AsArray()[2].AsInt()),
+                                    color.AsArray()[3].AsDouble()});
+                        }
+                    }
                 }
             }
         }
         renderer = map_renderer::MapRenderer{std::move(settings)};
-    }
-
-    void ParseColor(const Node& color, map_renderer::RenderSettings& settings) {
-        if(color.IsString()){
-            settings.color_palette.emplace_back(color.AsString());
-        } else if(color.IsArray()) {
-            if(color.AsArray().size() == 3) {
-                settings.color_palette.emplace_back(svg::Rgb {
-                        static_cast<uint8_t>(color.AsArray()[0].AsInt()),
-                        static_cast<uint8_t>(color.AsArray()[1].AsInt()),
-                        static_cast<uint8_t>(color.AsArray()[2].AsInt())});
-            }
-            else if(color.AsArray().size() == 4) {
-                settings.color_palette.emplace_back(svg::Rgba {
-                        static_cast<uint8_t>(color.AsArray()[0].AsInt()),
-                        static_cast<uint8_t>(color.AsArray()[1].AsInt()),
-                        static_cast<uint8_t>(color.AsArray()[2].AsInt()),
-                        color.AsArray()[3].AsDouble()});
-            }
-        }
     }
 
     void BasesProcessing(transport_catalogue::TransportCatalogue &catalogue, std::vector<Dict> &&base_requests) {
@@ -100,9 +107,9 @@ namespace tc_project::json_reader {
             }
         }
         for(const auto& data : road_distances) {
-             for(const auto& [name, dist] : data.second) {
-                 catalogue.SetDistance(data.first, name, dist.AsInt());
-             }
+            for(const auto& [name, dist] : data.second) {
+                catalogue.SetDistance(data.first, name, dist.AsInt());
+            }
         }
         for (const auto &bus_data: base_requests) {
             for (const auto &[key, value]: bus_data) {
@@ -126,7 +133,7 @@ namespace tc_project::json_reader {
             } else if (key == "longitude"sv) {
                 longitude = value.AsDouble();
             } else if (key == "road_distances") {
-                dist = value.AsMap();
+                dist = value.AsDict();
             }
         }
         road_distances[name] = dist;
@@ -152,8 +159,8 @@ namespace tc_project::json_reader {
     }
 
     void StatProcessing(const transport_catalogue::TransportCatalogue &catalogue, const map_renderer::MapRenderer& renderer, std::vector<Dict> &&stat_requests, std::ostream& output) {
-        std::string json_out;
-        std::vector<std::string> parse_data;
+        json::Node json;
+        std::vector<json::Node> builder_data;
         if(stat_requests.empty()) {
             return;
         }
@@ -171,85 +178,73 @@ namespace tc_project::json_reader {
                 }
             }
             if (type == "Bus") {
-                ParseBus(catalogue, renderer, name, id, parse_data);
+                ParseBus(catalogue, renderer, name, id, builder_data);
             } else if (type == "Stop") {
-                ParseStop(catalogue, renderer, name, id, parse_data);
+                ParseStop(catalogue, renderer, name, id, builder_data);
             } else if (type == "Map") {
-                ParseMap(catalogue, renderer, id, parse_data);
+                ParseMap(catalogue, renderer, id, builder_data);
             }
         }
-        json_out += "[\n";
-        for (const auto &out: parse_data) {
-            json_out += out + ',';
+        auto array_builder = json::Builder{};
+        array_builder.StartArray();
+        for(const auto& data : builder_data) {
+            array_builder.Value(data.AsDict());
         }
-        json_out.erase(json_out.size() - 1);
-        json_out += "\n]";
-        Print(LoadJSON(json_out), output);
+        json = array_builder.EndArray().Build();
+        json::Print(json::Document{json}, output);
     }
 
-    void ParseBus(const transport_catalogue::TransportCatalogue &catalogue, const map_renderer::MapRenderer& renderer, const std::string& name, const int id, std::vector<std::string>& parse_data) {
-        std::string json_bus;
+    void ParseBus(const transport_catalogue::TransportCatalogue &catalogue, const map_renderer::MapRenderer& renderer, const std::string& name, const int id, std::vector<json::Node>& builder_data) {
+        json::Node json_bus_builder;
         request_handler::RequestHandler handler(catalogue, renderer);
         auto info = handler.GetBusInfo(name);
         if(!info) {
-            json_bus = "{\n\"request_id\": " + std::to_string(id) + ",\n\"error_message\": \"not found\"\n}";
+            json_bus_builder = json::Builder{}.StartDict().Key("request_id").Value(id)
+                                                      .Key("error_message").Value("not found").EndDict().Build();
         } else {
-            json_bus =
-                    "{\n\"request_id\": " + std::to_string(id)   + ",\n\"curvature\": " + std::to_string(info->curvature) + ",\n\"route_length\": " +
-                    std::to_string(info->distance)
-                    + ",\n\"stop_count\": " + std::to_string(info->stops_count) + ",\n\"unique_stop_count\": " +
-                    std::to_string(info->unique_stops_count) + "\n}";
+            json_bus_builder = json::Builder{}.StartDict().Key("request_id").Value(id)
+                                                      .Key("curvature").Value(info->curvature)
+                                                      .Key("route_length").Value(info->distance)
+                                                      .Key("stop_count").Value(info->stops_count)
+                                                      .Key("unique_stop_count").Value(info->unique_stops_count).EndDict().Build();
         }
-        parse_data.push_back(json_bus);
+        builder_data.push_back(json_bus_builder);
     }
 
-    void ParseStop(const transport_catalogue::TransportCatalogue &catalogue, const map_renderer::MapRenderer& renderer, const std::string& name, const int id, std::vector<std::string>& parse_data) {
-        std::string json_stop;
+    void ParseStop(const transport_catalogue::TransportCatalogue &catalogue, const map_renderer::MapRenderer& renderer, const std::string& name, const int id, std::vector<json::Node>& builder_data) {
+        json::Node json_stop_builder;
         request_handler::RequestHandler handler(catalogue, renderer);
         auto info = handler.GetBusesByStop(name);
         if(info == std::nullopt) {
-            json_stop = "{\n\"request_id\": " + std::to_string(id)  + ",\n\"error_message\": \"not found\"\n}";
+            json_stop_builder = json::Builder{}.StartDict().Key("request_id").Value(id)
+                                                      .Key("error_message").Value("not found").EndDict().Build();
         } else if(info == nullptr) {
-            json_stop = "{\n\"request_id\": " + std::to_string(id)  + ",\n\"buses\": [\t]\n}";
+            json_stop_builder = json::Builder{}.StartDict().Key("request_id").Value(id)
+                                                      .Key("buses").StartArray().EndArray().EndDict().Build();
         } else {
             const auto& buses = *info.value();
             std::vector<const Bus*> sorted_buses(buses.begin(), buses.end());
             std::sort(sorted_buses.begin(), sorted_buses.end(),
                       [](const Bus* a, const Bus* b) { return a->name < b->name; });
-            json_stop = "{\n\"request_id\": " + std::to_string(id)  + ",\n\"buses\": [";
+            auto array_builder = json::Builder{};
+            array_builder.StartDict().Key("request_id").Value(id)
+                                     .Key("buses").StartArray();
             for (const auto& bus : sorted_buses) {
-                json_stop += " \"" + bus->name + "\"";
+                array_builder.Value(bus->name);
             }
-            json_stop += "\n]\n}";
+            json_stop_builder = array_builder.EndArray().EndDict().Build();
         }
-        parse_data.push_back(json_stop);
+        builder_data.push_back(json_stop_builder);
     }
 
-    std::string Shielding(const std::string& str) {
-        std::string result;
-        for (char c : str) {
-            if (c == '\"') {
-                result += "\\\"";
-            } else if (c == '\n') {
-                result += "\\n";
-            } else if (c == '\\') {
-                result += "\\\\";
-            } else if (c == '\r') {
-                result += "\\r";
-            } else {
-                result.push_back(c);
-            }
-        }
-        return result;
-    }
-
-    void ParseMap(const transport_catalogue::TransportCatalogue &catalogue, const map_renderer::MapRenderer& renderer, int id, std::vector<std::string>& parse_data) {
-        std::string json_map;
+    void ParseMap(const transport_catalogue::TransportCatalogue &catalogue, const map_renderer::MapRenderer& renderer, int id, std::vector<json::Node>& builder_data) {
+        json::Node json_map_builder;
         request_handler::RequestHandler handler(catalogue, renderer);
         auto doc = handler.RenderMap();
         std::ostringstream map;
         doc.Render(map);
-        json_map = "{\n\"request_id\": " + std::to_string(id) + ",\n\"map\": \"" + Shielding(map.str()) + "\"\n}";
-        parse_data.push_back(json_map);
+        json_map_builder = json::Builder{}.StartDict().Key("request_id").Value(id)
+                                                      .Key("map").Value(map.str()).EndDict().Build();
+        builder_data.push_back(json_map_builder);
     }
 }

@@ -2,18 +2,18 @@
 
 using namespace::std::literals::string_view_literals;
 
-    void AssertImpl(bool value, const std::string& expr_str, const std::string& file, const std::string& func, unsigned line,
-                    const std::string& hint) {
-        if (!value) {
-            std::cerr << file << "("s << line << "): "s << func << ": "s;
-            std::cerr << "ASSERT("s << expr_str << ") failed."s;
-            if (!hint.empty()) {
-                std::cerr << " Hint: "s << hint;
-            }
-            std::cerr << std::endl;
-            abort();
+void AssertImpl(bool value, const std::string& expr_str, const std::string& file, const std::string& func, unsigned line,
+                const std::string& hint) {
+    if (!value) {
+        std::cerr << file << "("s << line << "): "s << func << ": "s;
+        std::cerr << "ASSERT("s << expr_str << ") failed."s;
+        if (!hint.empty()) {
+            std::cerr << " Hint: "s << hint;
         }
+        std::cerr << std::endl;
+        abort();
     }
+}
 namespace tc_project::transport_catalogue::tests{
 
     void AddBus() {
@@ -231,7 +231,7 @@ namespace json::tests {
         assert(!null_node.IsPureDouble());
         assert(!null_node.IsString());
         assert(!null_node.IsArray());
-        assert(!null_node.IsMap());
+        assert(!null_node.IsDict());
 
         Node null_node1{nullptr};
         assert(null_node1.IsNull());
@@ -339,8 +339,8 @@ namespace json::tests {
 
     void TestMap() {
         Node dict_node{Dict{{"key1"s, "value1"s}, {"key2"s, 42}}};
-        assert(dict_node.IsMap());
-        const Dict& dict = dict_node.AsMap();
+        assert(dict_node.IsDict());
+        const Dict& dict = dict_node.AsDict();
         assert(dict.size() == 2);
         assert(dict.at("key1"s).AsString() == "value1"s);
         assert(dict.at("key2"s).AsInt() == 42);
@@ -381,7 +381,7 @@ namespace json::tests {
 
         Node array_node{Array{}};
         MustThrowLogicError([&array_node] {
-            array_node.AsMap();
+            array_node.AsDict();
         });
         MustThrowLogicError([&array_node] {
             array_node.AsDouble();
@@ -425,8 +425,8 @@ namespace json::tests {
         assert(LoadJSON(arr_json_minify).GetRoot() == arr_node);
 
         Node dict_node = Dict{{{"42"s, 42}, {"4.2"s, 4.2}, {"true"s, true}, {"string"s, "string"s}, {"[]"s, Array{}}}};
-        assert(dict_node.IsMap());
-        const Dict& dict = dict_node.AsMap();
+        assert(dict_node.IsDict());
+        const Dict& dict = dict_node.AsDict();
         auto dict_json = "{\"42\": 42, \"4.2\": 4.2, \"true\": true, \"string\": \"string\", \"[]\": []}"s;
         auto dict_json_minify = "{\"42\":42,\"4.2\":4.2,\"true\":true,\"string\":\"string\",\"[]\":[]}"s;
         assert((LoadJSON(dict_json).GetRoot() == dict_node));
@@ -460,7 +460,7 @@ namespace tc_project::json_reader::tests {
                            "      \"longitude\": 39.716901,\n"
                            "      \"road_distances\": {\"Морской вокзал\": 850}\n"
                            "    }";
-        auto stop = LoadJSON(json).GetRoot().AsMap();
+        auto stop = json::tests::LoadJSON(json).GetRoot().AsDict();
         json_reader::StopProcessing(catalogue, stop, road_distances);
         auto stop_test = catalogue.FindStop("Ривьерский мост");
         ASSERT_HINT(stop_test != nullptr, "Stop not added!");
@@ -479,7 +479,7 @@ namespace tc_project::json_reader::tests {
                            "      \"stops\": [\"Морской вокзал\", \"Ривьерский мост\"],\n"
                            "      \"is_roundtrip\": false\n"
                            "    }";
-        auto bus = LoadJSON(json).GetRoot().AsMap();
+        auto bus = json::tests::LoadJSON(json).GetRoot().AsDict();
         json_reader::BusProcessing(catalogue, bus);
         auto bus_test = catalogue.FindBus("114");
         ASSERT_HINT(bus_test != nullptr, "Bus not added!");
@@ -493,54 +493,44 @@ namespace tc_project::json_reader::tests {
     void ParseStop() {
         transport_catalogue::TransportCatalogue catalogue;
         map_renderer::MapRenderer render;
-        std::vector<std::string> parse_data;
+        std::vector<json::Node> builder_data;
         catalogue.AddStop("Морской вокзал", 43.581969, 39.719848);
         catalogue.AddStop("Улица Докучаева", 43.585586, 39.733879);
-        json_reader::ParseStop(catalogue, render, "Электросети", 1, parse_data);
-        json_reader::ParseStop(catalogue, render, "Морской вокзал", 2, parse_data);
+        json_reader::ParseStop(catalogue, render, "Электросети", 1, builder_data);
+        json_reader::ParseStop(catalogue, render, "Морской вокзал", 2, builder_data);
         catalogue.AddBus("14", {"Улица Докучаева", "Морской вокзал"}, true);
-        json_reader::ParseStop(catalogue, render, "Улица Докучаева", 3, parse_data);
-        std::string test1 = "{\n"
-                            "\"request_id\": 1,\n"
-                            "\"error_message\": \"not found\"\n"
-                            "}";
-        std::string test2 = "{\n"
-                            "\"request_id\": 2,\n"
-                            "\"buses\": [\t]\n"
-                            "}";
-        std::string test3 = "{\n"
-                            "\"request_id\": 3,\n"
-                            "\"buses\": [ \"14\"\n"
-                            "]\n"
-                            "}";
-        ASSERT_EQUAL_HINT(test1, parse_data[0], "Wrong parsing!");
-        ASSERT_EQUAL_HINT(test2, parse_data[1], "Wrong parsing!");
-        ASSERT_EQUAL_HINT(test3, parse_data[2], "Wrong parsing!");
+        json_reader::ParseStop(catalogue, render, "Улица Докучаева", 3, builder_data);
+        auto test1 = json::Builder{}.StartDict().Key("request_id").Value(1).Key("error_message").Value("not found").EndDict().Build();
+        auto test2 = json::Builder{}.StartDict().Key("request_id").Value(2).Key("buses").StartArray().EndArray().EndDict().Build();
+        auto test3 = json::Builder{}.StartDict().Key("request_id").Value(3).Key("buses").StartArray().Value("14").EndArray().EndDict().Build();
+        ASSERT_HINT(test1 == builder_data[0], "Wrong parsing!");
+        ASSERT_HINT(test2 == builder_data[1], "Wrong parsing!");
+        ASSERT_HINT(test3 == builder_data[2], "Wrong parsing!");
     }
 
     void ParseBus() {
         transport_catalogue::TransportCatalogue catalogue;
         map_renderer::MapRenderer render;
-        std::vector<std::string> parse_data;
+        std::vector<json::Node> builder_data;
         catalogue.AddStop("Морской вокзал", 43.581969, 39.719848);
         catalogue.AddStop("Улица Докучаева", 43.585586, 39.733879);
         catalogue.SetDistance("Морской вокзал", "Улица Докучаева", 850);
         catalogue.AddBus("14", {"Улица Докучаева", "Морской вокзал"}, true);
-        json_reader::ParseBus(catalogue, render, "114", 1, parse_data);
-        json_reader::ParseBus(catalogue, render, "14", 2, parse_data);
-        std::string test1 = "{\n"
-                            "\"request_id\": 1,\n"
-                            "\"error_message\": \"not found\"\n"
-                            "}";
-        std::string test2 = "{\n"
-                            "\"request_id\": 2,\n"
-                            "\"curvature\": 0.708586,\n"
-                            "\"route_length\": 850,\n"
-                            "\"stop_count\": 2,\n"
-                            "\"unique_stop_count\": 2\n"
-                            "}";
-        ASSERT_EQUAL_HINT(test1, parse_data[0], "Wrong parsing!");
-        ASSERT_EQUAL_HINT(test2, parse_data[1], "Wrong parsing!");
+        json_reader::ParseBus(catalogue, render, "114", 1, builder_data);
+        json_reader::ParseBus(catalogue, render, "14", 2, builder_data);
+        auto test1 = json::Builder{}.StartDict().Key("request_id").Value(1).Key("error_message").Value("not found").EndDict().Build();
+        auto test2 = json::Builder{}.StartDict().Key("request_id").Value(2).Key("curvature").Value(0.708586)
+                                                      .Key("route_length").Value(850).Key("stop_count").Value(2)
+                                                      .Key("unique_stop_count").Value(2).EndDict().Build();
+        ASSERT_HINT(test1 == builder_data[0], "Wrong parsing!");
+        for(const auto& [key, value] : builder_data[1].AsDict()){
+            if(value.IsInt()){
+                ASSERT_HINT(test2.AsDict().at(key).AsInt() == value.AsInt(), "Wrong parsing!");
+            }
+            if(value.IsDouble()){
+                ASSERT_HINT(std::abs(test2.AsDict().at(key).AsDouble() - value.AsDouble()) < EPSILON, "Wrong parsing!");
+            }
+        }
     }
 
     void ParseMap() {
@@ -550,17 +540,14 @@ namespace tc_project::json_reader::tests {
                     20, {7, 15},20, {7, -3},
                     "255, 255, 255, 0.85",  3, {"green", "255, 160, 0", "red"}};
         map_renderer::MapRenderer render(settings);
-        std::vector<std::string> parse_data;
+        std::vector<json::Node> builder_data;
         catalogue.AddStop("Морской вокзал", 43.581969, 39.719848);
         catalogue.AddStop("Улица Докучаева", 43.585586, 39.733879);
         catalogue.SetDistance("Морской вокзал", "Улица Докучаева", 850);
         catalogue.AddBus("14", {"Улица Докучаева", "Морской вокзал"}, true);
-        json_reader::ParseMap(catalogue, render, 1, parse_data);
-        std::string test = "{\n"
-                           "\"request_id\": 1,\n"
-                           "\"map\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\" ?>\\n<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" version=\\\"1.1\\\">\\n  <polyline points=\\\"550,50 50,178.893\\\" fill=\\\"none\\\" stroke=\\\"green\\\" stroke-width=\\\"5\\\" stroke-linecap=\\\"round\\\" stroke-linejoin=\\\"round\\\"/>\\n  <text fill=\\\"255, 255, 255, 0.85\\\" stroke=\\\"255, 255, 255, 0.85\\\" stroke-width=\\\"3\\\" stroke-linecap=\\\"round\\\" stroke-linejoin=\\\"round\\\" x=\\\"550\\\" y=\\\"50\\\" dx=\\\"7\\\" dy=\\\"15\\\" font-size=\\\"20\\\" font-family=\\\"Verdana\\\" font-weight=\\\"bold\\\">14</text>\\n  <text fill=\\\"green\\\" x=\\\"550\\\" y=\\\"50\\\" dx=\\\"7\\\" dy=\\\"15\\\" font-size=\\\"20\\\" font-family=\\\"Verdana\\\" font-weight=\\\"bold\\\">14</text>\\n  <circle cx=\\\"50\\\" cy=\\\"178.893\\\" r=\\\"14\\\" fill=\\\"white\\\"/>\\n  <circle cx=\\\"550\\\" cy=\\\"50\\\" r=\\\"14\\\" fill=\\\"white\\\"/>\\n  <text fill=\\\"255, 255, 255, 0.85\\\" stroke=\\\"255, 255, 255, 0.85\\\" stroke-width=\\\"3\\\" stroke-linecap=\\\"round\\\" stroke-linejoin=\\\"round\\\" x=\\\"50\\\" y=\\\"178.893\\\" dx=\\\"7\\\" dy=\\\"-3\\\" font-size=\\\"20\\\" font-family=\\\"Verdana\\\">Морской вокзал</text>\\n  <text fill=\\\"black\\\" x=\\\"50\\\" y=\\\"178.893\\\" dx=\\\"7\\\" dy=\\\"-3\\\" font-size=\\\"20\\\" font-family=\\\"Verdana\\\">Морской вокзал</text>\\n  <text fill=\\\"255, 255, 255, 0.85\\\" stroke=\\\"255, 255, 255, 0.85\\\" stroke-width=\\\"3\\\" stroke-linecap=\\\"round\\\" stroke-linejoin=\\\"round\\\" x=\\\"550\\\" y=\\\"50\\\" dx=\\\"7\\\" dy=\\\"-3\\\" font-size=\\\"20\\\" font-family=\\\"Verdana\\\">Улица Докучаева</text>\\n  <text fill=\\\"black\\\" x=\\\"550\\\" y=\\\"50\\\" dx=\\\"7\\\" dy=\\\"-3\\\" font-size=\\\"20\\\" font-family=\\\"Verdana\\\">Улица Докучаева</text>\\n</svg>\"\n"
-                           "}";
-        ASSERT_EQUAL_HINT(test, parse_data[0], "Wrong parsing!");
+        json_reader::ParseMap(catalogue, render, 1, builder_data);
+        auto test = json::Builder{}.StartDict().Key("request_id").Value(1).Key("map").Value( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n  <polyline points=\"550,50 50,178.893\" fill=\"none\" stroke=\"green\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n  <text fill=\"255, 255, 255, 0.85\" stroke=\"255, 255, 255, 0.85\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" x=\"550\" y=\"50\" dx=\"7\" dy=\"15\" font-size=\"20\" font-family=\"Verdana\" font-weight=\"bold\">14</text>\n  <text fill=\"green\" x=\"550\" y=\"50\" dx=\"7\" dy=\"15\" font-size=\"20\" font-family=\"Verdana\" font-weight=\"bold\">14</text>\n  <circle cx=\"50\" cy=\"178.893\" r=\"14\" fill=\"white\"/>\n  <circle cx=\"550\" cy=\"50\" r=\"14\" fill=\"white\"/>\n  <text fill=\"255, 255, 255, 0.85\" stroke=\"255, 255, 255, 0.85\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" x=\"50\" y=\"178.893\" dx=\"7\" dy=\"-3\" font-size=\"20\" font-family=\"Verdana\">Морской вокзал</text>\n  <text fill=\"black\" x=\"50\" y=\"178.893\" dx=\"7\" dy=\"-3\" font-size=\"20\" font-family=\"Verdana\">Морской вокзал</text>\n  <text fill=\"255, 255, 255, 0.85\" stroke=\"255, 255, 255, 0.85\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" x=\"550\" y=\"50\" dx=\"7\" dy=\"-3\" font-size=\"20\" font-family=\"Verdana\">Улица Докучаева</text>\n  <text fill=\"black\" x=\"550\" y=\"50\" dx=\"7\" dy=\"-3\" font-size=\"20\" font-family=\"Verdana\">Улица Докучаева</text>\n</svg>").EndDict().Build();
+        ASSERT_HINT(test == builder_data[0], "Wrong parsing!");
     }
 
     void JsonReader() {

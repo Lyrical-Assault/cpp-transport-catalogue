@@ -1,5 +1,7 @@
-#include "test_functions.h"
 #include "json_reader.h"
+#include "test_functions.h"
+
+using namespace std;
 
 int main() {
     tc_project::transport_catalogue::TransportCatalogue catalogue;

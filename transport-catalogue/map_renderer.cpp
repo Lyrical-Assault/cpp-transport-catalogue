@@ -133,7 +133,7 @@ namespace tc_project::map_renderer {
                     result.push_back(stroke);
                     result.push_back(text);
                 }
-                if(!bus->is_roundtrip && j == bus->stops.size()/2 && (bus->stops[0] != bus->stops[bus->stops.size()/2])) {
+                if(!bus->is_roundtrip && j == static_cast<int>(bus->stops.size()/2) && (bus->stops[0] != bus->stops[bus->stops.size()/2])) {
                     text.SetPosition(projector(geo_coords[j + current_bus_stops_offset]))
                             .SetData(bus->name)
                             .SetFontFamily("Verdana")
