@@ -5,19 +5,20 @@
 #include <vector>
 #include <string>
 #include <stack>
+#include <memory>
 
 namespace json {
 
-    class BaseContext;
-
-    class DictItemContext;
-
-    class ArrayItemContext;
-
-    class KeyItemContext;
-
     class Builder {
     public:
+
+        class BaseContext;
+
+        class DictItemContext;
+
+        class ArrayItemContext;
+
+        class KeyItemContext;
 
         KeyItemContext Key(std::string key);
 
@@ -36,15 +37,17 @@ namespace json {
     private:
         Node root_;
 
-        std::vector<Node*> nodes_stack_;
+        std::vector<std::unique_ptr<Node>> nodes_stack_;
 
         std::stack<std::string> current_keys_;
 
         bool is_nested_= false;
 
+        Builder& End();
+
     };
 
-    class BaseContext {
+    class Builder::BaseContext {
     public:
 
         BaseContext(Builder& builder) : builder_(builder) {}
@@ -67,7 +70,7 @@ namespace json {
         Builder& builder_;
     };
 
-    class DictItemContext : public BaseContext {
+    class Builder::DictItemContext : public BaseContext {
     public:
 
         DictItemContext(BaseContext base) : BaseContext(base) {}
@@ -84,7 +87,7 @@ namespace json {
 
     };
 
-    class ArrayItemContext : public BaseContext {
+    class Builder::ArrayItemContext : public BaseContext {
     public:
 
         ArrayItemContext(BaseContext base) : BaseContext(base) {}
@@ -98,7 +101,7 @@ namespace json {
         Node Build() = delete;
     };
 
-    class KeyItemContext : public BaseContext {
+    class Builder::KeyItemContext : public BaseContext {
     public:
 
         KeyItemContext(BaseContext base) : BaseContext(base) {}

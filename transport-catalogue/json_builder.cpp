@@ -2,12 +2,12 @@
 
 namespace json {
 
-    KeyItemContext Builder::Key(std::string key) {
+    Builder::KeyItemContext Builder::Key(std::string key) {
         current_keys_.push(std::move(key));
         return BaseContext{*this};
     }
 
-    BaseContext Builder::Value(Node::Value value) {
+    Builder::BaseContext Builder::Value(Node::Value value) {
         Node node = std::visit([](const auto &val) -> Node {
             return Node(val);
         }, value);
@@ -24,22 +24,45 @@ namespace json {
         return BaseContext{*this};
     }
 
-    DictItemContext Builder::StartDict() {
+    Builder::DictItemContext Builder::StartDict() {
         Dict dict;
         if (!nodes_stack_.empty() && nodes_stack_.back()->IsArray()){
             is_nested_ = true;
         }
-        nodes_stack_.emplace_back(new Node(dict));
+        nodes_stack_.emplace_back(std::make_unique<Node>(dict));
         return BaseContext{*this};
     }
 
-    ArrayItemContext Builder::StartArray() {
+    Builder::ArrayItemContext Builder::StartArray() {
         Array arr;
         if (!nodes_stack_.empty() && nodes_stack_.back()->IsArray()){
             is_nested_ = true;
         }
-        nodes_stack_.emplace_back(new Node(arr));
+        nodes_stack_.emplace_back(std::make_unique<Node>(arr));
         return BaseContext{*this};
+    }
+
+    Builder& Builder::End() {
+        using namespace std::literals;
+        auto node = std::move(nodes_stack_.back());
+        nodes_stack_.pop_back();
+        if (!nodes_stack_.empty()) {
+            if (nodes_stack_.back()->IsArray()) {
+                std::get<Array>(nodes_stack_.back()->GetValue()).emplace_back(*node);
+                is_nested_ = false;
+            } else if (nodes_stack_.back()->IsDict()) {
+                if (current_keys_.empty()) {
+                    throw std::logic_error("Value should be used inside a dictionary with a key!"s);
+                }
+                std::get<Dict>(nodes_stack_.back()->GetValue()).insert({std::move(current_keys_.top()), *node});
+                current_keys_.pop();
+            } else {
+                throw std::logic_error("Invalid method call!"s);
+            }
+        } else {
+            root_ = *node;
+        }
+        return *this;
     }
 
     Builder& Builder::EndDict() {
@@ -47,26 +70,7 @@ namespace json {
         if (nodes_stack_.empty() || !nodes_stack_.back()->IsDict()) {
             throw std::logic_error("Invalid method call!"s);
         }
-        Node *dictNode = nodes_stack_.back();
-        nodes_stack_.pop_back();
-        if (!nodes_stack_.empty()) {
-            if (nodes_stack_.back()->IsArray()) {
-                std::get<Array>(nodes_stack_.back()->GetValue()).emplace_back(*dictNode);
-                is_nested_ = false;
-            } else if (nodes_stack_.back()->IsDict()) {
-                if (current_keys_.empty()) {
-                    throw std::logic_error("Value should be used inside a dictionary with a key!"s);
-                }
-                std::get<Dict>(nodes_stack_.back()->GetValue()).insert({std::move(current_keys_.top()), *dictNode});
-                current_keys_.pop();
-            } else {
-                throw std::logic_error("Invalid method call!"s);
-            }
-        } else {
-            root_ = *dictNode;
-        }
-        delete dictNode;
-        return *this;
+        return End();
     }
 
     Builder& Builder::EndArray() {
@@ -74,28 +78,7 @@ namespace json {
         if (nodes_stack_.empty() || !nodes_stack_.back()->IsArray()) {
             throw std::logic_error("Invalid method call!"s);
         }
-        Node *arrayNode = nodes_stack_.back();
-        nodes_stack_.pop_back();
-
-        if (!nodes_stack_.empty()) {
-            if (nodes_stack_.back()->IsArray()) {
-                std::get<Array>(nodes_stack_.back()->GetValue()).emplace_back(*arrayNode);
-                is_nested_ = false;
-            } else if (nodes_stack_.back()->IsDict()) {
-                if (current_keys_.empty()) {
-                    throw std::logic_error("Value should be used inside a dictionary with a key!"s);
-                }
-                std::get<Dict>(nodes_stack_.back()->GetValue()).insert({std::move(current_keys_.top()), *arrayNode});
-                current_keys_.pop();
-            } else {
-                throw std::logic_error("Invalid method call!"s);
-            }
-        } else {
-            root_ = *arrayNode;
-        }
-
-        delete arrayNode;
-        return *this;
+        return End();
     }
 
     Node Builder::Build() {
@@ -106,39 +89,39 @@ namespace json {
         return root_;
     }
 
-    KeyItemContext BaseContext::Key(std::string key) {
+    Builder::KeyItemContext Builder::BaseContext::Key(std::string key) {
         return builder_.Key(std::move(key));
     }
 
-    BaseContext BaseContext::Value(Node::Value value) {
+    Builder::BaseContext Builder::BaseContext::Value(Node::Value value) {
         return builder_.Value(std::move(value));
     }
 
-    DictItemContext BaseContext::StartDict(){
+    Builder::DictItemContext Builder::BaseContext::StartDict(){
         return builder_.StartDict();
     }
 
-    ArrayItemContext BaseContext::StartArray(){
+    Builder::ArrayItemContext Builder::BaseContext::StartArray(){
         return builder_.StartArray();
     }
 
-    Builder& BaseContext::EndDict() {
+    Builder& Builder::BaseContext::EndDict() {
         return builder_.EndDict();
     }
 
-    Builder& BaseContext::EndArray() {
+    Builder& Builder::BaseContext::EndArray() {
         return builder_.EndArray();
     }
 
-    Node BaseContext::Build() {
+    Node Builder::BaseContext::Build() {
         return builder_.Build();
     }
 
-    ArrayItemContext ArrayItemContext::Value(Node::Value value) {
+    Builder::ArrayItemContext Builder::ArrayItemContext::Value(Node::Value value) {
         return BaseContext::Value(std::move(value));
     }
 
-    DictItemContext KeyItemContext::Value(Node::Value value) {
+    Builder::DictItemContext Builder::KeyItemContext::Value(Node::Value value) {
         return BaseContext::Value(std::move(value));
     }
 
