@@ -66,7 +66,12 @@ namespace tc_project::transport_catalogue {
         return index_routes_;
     }
 
+    const std::unordered_map<std::string_view, const Stop*, TransportCatalogue::TransportCatalogueHasher>& TransportCatalogue::GetIndexStops() const {
+        return index_bus_stops_;
+    }
+
     const std::unordered_map<const Stop*, std::unordered_set<const Bus*>, TransportCatalogue::TransportCatalogueHasher>& TransportCatalogue::GetBusesByStop() const {
         return index_stop_to_buses_;
     }
+
 }

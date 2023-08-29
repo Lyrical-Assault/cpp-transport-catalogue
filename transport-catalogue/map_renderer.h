@@ -34,10 +34,6 @@ namespace tc_project::map_renderer {
 
     class MapRenderer {
     public:
-        MapRenderer() = default;
-
-        explicit MapRenderer(RenderSettings settings) : settings_(std::move(settings)) {
-        }
 
         std::vector<svg::Circle> StopsCircleRender(const std::vector<const Stop*>& stops) const;
 
@@ -48,6 +44,11 @@ namespace tc_project::map_renderer {
         std::vector<svg::Text> BusesTextRender(const std::vector<const Bus*>& buses) const;
 
         svg::Document MapRender(const std::vector<const Bus*>& buses) const;
+
+        template<typename S>
+        void SetSettings(S&& settings) {
+            settings_ = std::forward<S>(settings);
+        }
 
     private:
         RenderSettings settings_;

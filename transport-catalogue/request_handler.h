@@ -2,10 +2,14 @@
 
 #include "transport_catalogue.h"
 #include "map_renderer.h"
+#include "router.h"
+#include "graph.h"
+#include "transport_router.h"
 
 #include <optional>
 #include <unordered_set>
 #include <string_view>
+#include <memory>
 
 namespace tc_project::request_handler {
     class RequestHandler {

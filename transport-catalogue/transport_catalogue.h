@@ -59,6 +59,8 @@ namespace tc_project::transport_catalogue{
 
         const std::unordered_map<std::string_view, const Bus*, TransportCatalogueHasher>& GetIndexRoutes() const;
 
+        const std::unordered_map<std::string_view, const Stop*, TransportCatalogueHasher>& GetIndexStops() const;
+
         const std::unordered_map<const Stop*, std::unordered_set<const Bus*>, TransportCatalogueHasher>& GetBusesByStop() const;
 
     private:

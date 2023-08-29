@@ -5,10 +5,12 @@
 #include "request_handler.h"
 #include "map_renderer.h"
 #include "json_builder.h"
+#include "transport_router.h"
 
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <utility>
 #include <vector>
 #include <tuple>
 
@@ -20,22 +22,60 @@ namespace tc_project::json_reader {
 
     using json::Node;
 
-    void RequestsProcessing(transport_catalogue::TransportCatalogue& catalogue, map_renderer::MapRenderer& renderer, std::istream& input, std::ostream& output);
+    class JsonReader {
+    public:
 
-    void BasesProcessing(transport_catalogue::TransportCatalogue& catalogue, std::vector<Dict>&& base_requests);
+        template <typename TC, typename MR>
+        explicit JsonReader(TC&& catalogue, MR&& renderer)
+                        : catalogue_(std::forward<TC>(catalogue)), renderer_(std::forward<MR>(renderer)), handler_(catalogue_, renderer_) {}
 
-    void StopProcessing(transport_catalogue::TransportCatalogue& catalogue, const Dict& stop, std::map<std::string, std::map<std::string, Node>>& road_distances);
+        void RequestsProcessing(std::istream& input, std::ostream& output);
 
-    void BusProcessing(transport_catalogue::TransportCatalogue& catalogue, const Dict& bus);
+    private:
 
-    void StatProcessing(const transport_catalogue::TransportCatalogue& catalogue, const map_renderer::MapRenderer& renderer, std::vector<Dict>&& stat_requests, std::ostream& output);
+        void BasesProcessing();
 
-    void ParseBus(const transport_catalogue::TransportCatalogue &catalogue, const map_renderer::MapRenderer& renderer, const std::string& name, int id, std::vector<json::Node>& builder_data);
+        void StopProcessing(const Dict& stop);
 
-    void ParseStop(const transport_catalogue::TransportCatalogue &catalogue, const map_renderer::MapRenderer& renderer, const std::string& name, int id, std::vector<json::Node>& builder_data);
+        void BusProcessing(const Dict& bus);
 
-    void RenderProcessing(map_renderer::MapRenderer& renderer, Dict&&  render_settings);
+        void StatProcessing(std::ostream& output);
 
-    void ParseMap(const transport_catalogue::TransportCatalogue &catalogue, const map_renderer::MapRenderer& renderer, int id, std::vector<json::Node>& builder_data);
+        void ParseBus(const std::string& name, int id);
+
+        void ParseStop(const std::string& name, int id);
+
+        void RenderProcessing();
+
+        void ParseMap(int id);
+
+        void ParseRoute(const graph::Router<RouteWeight>& router, int id, const std::string& from, const std::string& to);
+
+        transport_catalogue::TransportCatalogue catalogue_;
+
+        map_renderer::MapRenderer renderer_;
+
+        std::vector<Node> builder_data_;
+
+        transport_router::TransportRouter transport_router_;
+
+        request_handler::RequestHandler handler_;
+
+        std::vector<Dict> base_requests_;
+
+        std::vector<Dict> stat_requests_;
+
+        Dict json_render_settings_;
+
+        std::map<std::string , std::map<std::string, Node>> road_distances_;
+
+        struct StatSettings {
+            std::string type;
+            std::string name;
+            std::string from;
+            std::string to;
+            int id = 0;
+        };
+    };
 
 }
