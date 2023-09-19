@@ -74,4 +74,8 @@ namespace tc_project::transport_catalogue {
         return index_stop_to_buses_;
     }
 
+    const std::unordered_map<std::pair<const Stop*, const Stop*>, int, TransportCatalogue::TransportCatalogueHasher>& TransportCatalogue::GetIndexDistance() const {
+        return index_stops_distance_;
+    }
+
 }

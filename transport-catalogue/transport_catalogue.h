@@ -63,6 +63,8 @@ namespace tc_project::transport_catalogue{
 
         const std::unordered_map<const Stop*, std::unordered_set<const Bus*>, TransportCatalogueHasher>& GetBusesByStop() const;
 
+        const std::unordered_map<std::pair<const Stop*, const Stop*>, int, TransportCatalogueHasher>& GetIndexDistance() const;
+
     private:
         std::deque<Stop> bus_stops_;
 

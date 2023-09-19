@@ -45,6 +45,8 @@ namespace tc_project::map_renderer {
 
         svg::Document MapRender(const std::vector<const Bus*>& buses) const;
 
+        const RenderSettings& GetSettings() const;
+
         template<typename S>
         void SetSettings(S&& settings) {
             settings_ = std::forward<S>(settings);

@@ -9,6 +9,9 @@
 #include <unordered_map>
 #include <memory>
 
+#include <vector>
+#include <string>
+
 namespace tc_project::transport_router {
     class TransportRouter {
     private:
@@ -34,13 +37,25 @@ namespace tc_project::transport_router {
 
         void SetBusVelocity(double bus_velocity);
 
-        void BuildGraph(const transport_catalogue::TransportCatalogue &catalogue, size_t size);
+        void BuildGraph(const transport_catalogue::TransportCatalogue &catalogue);
 
         size_t GetVertex(const std::string& name) const;
 
         const graph::DirectedWeightedGraph<RouteWeight>& GetGraph() const;
 
+        int GetBusWaitTime() const;
+
+        double GetBusVelocity() const;
+
+        void SetGraph(const graph::DirectedWeightedGraph<RouteWeight>& graph);
+
+        void SetVertexNames(std::vector<std::string>&& names);
+
+        void SetVertex(std::string_view name, size_t from, size_t to);
+
     private:
+
+        std::vector<std::string> names_;
 
         std::unordered_map<std::string_view, std::pair<size_t, size_t>, TransportRouterHasher> vertex_id_;
 

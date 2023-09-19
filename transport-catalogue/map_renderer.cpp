@@ -189,4 +189,8 @@ namespace tc_project::map_renderer {
         }
         return doc;
     }
+
+    const RenderSettings& MapRenderer::GetSettings() const {
+        return settings_;
+    }
 }

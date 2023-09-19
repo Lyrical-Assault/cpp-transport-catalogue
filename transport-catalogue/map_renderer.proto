@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package proto_map_renderer;
+
+import "svg.proto";
+
+message RenderSettings {
+  double height = 1;
+  double width = 2;
+  double line_width = 3;
+  double stop_radius = 4;
+  int32 bus_label_font_size = 5;
+  repeated double bus_label_offset = 6;
+  int32 stop_label_font_size = 7;
+  repeated double stop_label_offset = 8;
+  double underlayer_width = 9;
+  proto_svg.Color underlayer_color = 10;
+  repeated proto_svg.Color color_palette = 11;
+  double padding = 12;
+}

@@ -4,32 +4,54 @@ using namespace::std::literals::string_view_literals;
 
 namespace tc_project::json_reader {
 
-    void JsonReader::RequestsProcessing(std::istream& input, std::ostream& output) {
+    void JsonReader::Make_Base(std::istream& input) {
         auto json_data = json::Load(input);
         for (const auto &[key, value]: json_data.GetRoot().AsDict()) {
             if (key == "base_requests"sv) {
                 for (const auto &base_data: value.AsArray()) {
                     base_requests_.push_back(base_data.AsDict());
                 }
-            } else if (key == "stat_requests"sv) {
-                for (const auto &stat_data: value.AsArray()) {
-                    stat_requests_.push_back(stat_data.AsDict());
-                }
             } else if (key == "render_settings"sv) {
                 json_render_settings_ = value.AsDict();
             } else if (key == "routing_settings"sv) {
-                auto settings = value.AsDict();
-                for(const auto& [param, data] : settings) {
+                for(const auto& [param, data] : value.AsDict()) {
                     if(param == "bus_wait_time"sv) {
                         transport_router_.SetBusWaitTime(data.AsInt());
                     } else if(param == "bus_velocity"sv) {
                         transport_router_.SetBusVelocity(data.AsDouble());
                     }
                 }
+            } else if (key == "serialization_settings"sv) {
+                for(const auto& [param, data] : value.AsDict()) {
+                    if(param == "file"sv) {
+                        serialization_file_ = data.AsString();
+                    }
+                }
             }
         }
         BasesProcessing();
         RenderProcessing();
+        Serialization::BaseSerialization(serialization_file_, catalogue_, renderer_, transport_router_);
+    }
+
+    void JsonReader::Process_Requests(std::istream& input, std::ostream& output) {
+        auto json_data = json::Load(input);
+        for (const auto &[key, value]: json_data.GetRoot().AsDict()) {
+            if (key == "stat_requests"sv) {
+                for (const auto &stat_data: value.AsArray()) {
+                    stat_requests_.push_back(stat_data.AsDict());
+                }
+            } else if (key == "serialization_settings"sv) {
+                for(const auto& [param, data] : value.AsDict()) {
+                    if(param == "file"sv) {
+                        serialization_file_ = data.AsString();
+                    }
+                }
+            }
+        }
+        catalogue_ = Serialization::CatalogueDeserialization(serialization_file_);
+        renderer_ = Serialization::MapDeserialization(serialization_file_);
+        transport_router_ = Serialization::RouterDeserialization(serialization_file_);
         StatProcessing(output);
     }
 
@@ -53,6 +75,7 @@ namespace tc_project::json_reader {
                 }
             }
         }
+        transport_router_.BuildGraph(catalogue_);
     }
 
     void JsonReader::RenderProcessing() {
@@ -166,7 +189,6 @@ namespace tc_project::json_reader {
     void JsonReader::StatProcessing(std::ostream& output) {
         Node json;
         std::vector<json::Node> builder_data;
-        transport_router_.BuildGraph(catalogue_, catalogue_.GetIndexStops().size());
         graph::Router router(transport_router_.GetGraph());
         if(stat_requests_.empty()) {
             return;

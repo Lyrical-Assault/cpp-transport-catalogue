@@ -6,6 +6,7 @@
 #include "map_renderer.h"
 #include "json_builder.h"
 #include "transport_router.h"
+#include "serialization.h"
 
 #include <string>
 #include <iostream>
@@ -13,6 +14,7 @@
 #include <utility>
 #include <vector>
 #include <tuple>
+#include <filesystem>
 
 namespace tc_project::json_reader {
 
@@ -27,9 +29,11 @@ namespace tc_project::json_reader {
 
         template <typename TC, typename MR>
         explicit JsonReader(TC&& catalogue, MR&& renderer)
-                        : catalogue_(std::forward<TC>(catalogue)), renderer_(std::forward<MR>(renderer)), handler_(catalogue_, renderer_) {}
+                : catalogue_(std::forward<TC>(catalogue)), renderer_(std::forward<MR>(renderer)), handler_(catalogue_, renderer_) {}
 
-        void RequestsProcessing(std::istream& input, std::ostream& output);
+        void Make_Base(std::istream& input);
+
+        void Process_Requests(std::istream& input, std::ostream& output);
 
     private:
 
@@ -68,6 +72,8 @@ namespace tc_project::json_reader {
         Dict json_render_settings_;
 
         std::map<std::string , std::map<std::string, Node>> road_distances_;
+
+        std::filesystem::path serialization_file_;
 
         struct StatSettings {
             std::string type;
