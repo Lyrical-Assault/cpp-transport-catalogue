@@ -11,7 +11,6 @@ namespace json {
 
     class Builder {
     public:
-
         class BaseContext;
 
         class DictItemContext;
@@ -49,7 +48,6 @@ namespace json {
 
     class Builder::BaseContext {
     public:
-
         BaseContext(Builder& builder) : builder_(builder) {}
 
         KeyItemContext Key(std::string key);
@@ -72,7 +70,6 @@ namespace json {
 
     class Builder::DictItemContext : public BaseContext {
     public:
-
         DictItemContext(BaseContext base) : BaseContext(base) {}
 
         DictItemContext Value(Node::Value value) = delete;
@@ -89,7 +86,6 @@ namespace json {
 
     class Builder::ArrayItemContext : public BaseContext {
     public:
-
         ArrayItemContext(BaseContext base) : BaseContext(base) {}
 
         ArrayItemContext Value(Node::Value value);
@@ -103,7 +99,6 @@ namespace json {
 
     class Builder::KeyItemContext : public BaseContext {
     public:
-
         KeyItemContext(BaseContext base) : BaseContext(base) {}
 
         DictItemContext Value(Node::Value value);
@@ -118,4 +113,4 @@ namespace json {
 
     };
 
-}
+} // namespace json

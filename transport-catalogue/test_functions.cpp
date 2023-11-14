@@ -14,7 +14,8 @@ void AssertImpl(bool value, const std::string& expr_str, const std::string& file
         abort();
     }
 }
-namespace tc_project::transport_catalogue::tests{
+
+namespace tc_project::transport_catalogue::tests {
 
     void AddBus() {
         TransportCatalogue catalogue;
@@ -70,7 +71,7 @@ namespace tc_project::transport_catalogue::tests{
         ASSERT_HINT(non_stop == nullptr, "Non existent stop found!");
     }
 
-    void SetDistance(){
+    void SetDistance() {
         TransportCatalogue catalogue;
         catalogue.AddStop("Stop 1", 55.123, 37.456);
         catalogue.AddStop("Stop 2", 55.789, 37.890);
@@ -82,7 +83,8 @@ namespace tc_project::transport_catalogue::tests{
         ASSERT_HINT(catalogue.GetDistance(stop1, stop2) == 10, "Wrong distance!");
         ASSERT_HINT(catalogue.GetDistance(stop2, stop3) == 0, "Wrong distance!");
     }
-    void GetDistance(){
+
+    void GetDistance() {
         TransportCatalogue catalogue;
         catalogue.AddStop("Stop 1", 55.123, 37.456);
         catalogue.AddStop("Stop 2", 55.789, 37.890);
@@ -94,6 +96,7 @@ namespace tc_project::transport_catalogue::tests{
         ASSERT_HINT(stop3 == nullptr, "Non existent stop found!");
         ASSERT_HINT(catalogue.GetDistance(stop1, stop3) == 0, "Wrong distance!");
     }
+
     void TransportCatalogueTest() {
         RUN_TEST(AddBus);
         RUN_TEST(AddStop);
@@ -102,7 +105,8 @@ namespace tc_project::transport_catalogue::tests{
         RUN_TEST(SetDistance);
         RUN_TEST(GetDistance);
     }
-}
+
+} // namespace tc_project::transport_catalogue::tests
 
 namespace tc_project::request_handler::tests {
 
@@ -176,9 +180,11 @@ namespace tc_project::request_handler::tests {
         RUN_TEST(GetBusesByStop);
         RUN_TEST(RenderMap);
     }
-}
+
+} // tc_project::request_handler::tests
 
 namespace json::tests {
+
     json::Document LoadJSON(const std::string& s) {
         std::istringstream strm(s);
         return json::Load(strm);
@@ -232,14 +238,11 @@ namespace json::tests {
         assert(!null_node.IsString());
         assert(!null_node.IsArray());
         assert(!null_node.IsDict());
-
         Node null_node1{nullptr};
         assert(null_node1.IsNull());
-
         assert(Print(null_node) == "null"s);
         assert(null_node == null_node1);
         assert(!(null_node != null_node1));
-
         const Node node = LoadJSON("null"s).GetRoot();
         assert(node.IsNull());
         assert(node == null_node);
@@ -259,18 +262,15 @@ namespace json::tests {
         assert(int_node == Node{42});
         // int и double - разные типы, поэтому не равны, даже когда хранят
         assert(int_node != Node{42.0});
-
         const Node dbl_node{123.45};
         assert(dbl_node.IsDouble());
         assert(dbl_node.AsDouble() == 123.45);
         assert(dbl_node.IsPureDouble());  // Значение содержит число с плавающей запятой
         assert(!dbl_node.IsInt());
-
         assert(Print(int_node) == "42"s);
         assert(Print(dbl_node) == "123.45"s);
         assert(Print(Node{-42}) == "-42"s);
         assert(Print(Node{-3.5}) == "-3.5"s);
-
         assert(LoadJSON("42"s).GetRoot() == int_node);
         assert(LoadJSON("123.45"s).GetRoot() == dbl_node);
         assert(LoadJSON("0.25"s).GetRoot().AsDouble() == 0.25);
@@ -288,12 +288,9 @@ namespace json::tests {
         Node str_node{"Hello, \"everybody\""s};
         assert(str_node.IsString());
         assert(str_node.AsString() == "Hello, \"everybody\""s);
-
         assert(!str_node.IsInt());
         assert(!str_node.IsDouble());
-
         assert(Print(str_node) == "\"Hello, \\\"everybody\\\"\""s);
-
         assert(LoadJSON(Print(str_node)).GetRoot() == str_node);
         const std::string escape_chars
                 = R"("\r\n\t\"\\")"s;  // При чтении строкового литерала последовательности \r,\n,\t,\\,\"
@@ -308,14 +305,11 @@ namespace json::tests {
         Node true_node{true};
         assert(true_node.IsBool());
         assert(true_node.AsBool());
-
         Node false_node{false};
         assert(false_node.IsBool());
         assert(!false_node.AsBool());
-
         assert(Print(true_node) == "true"s);
         assert(Print(false_node) == "false"s);
-
         assert(LoadJSON("true"s).GetRoot() == true_node);
         assert(LoadJSON("false"s).GetRoot() == false_node);
         assert(LoadJSON(" \t\r\n\n\r true \r\n"s).GetRoot() == true_node);
@@ -328,7 +322,6 @@ namespace json::tests {
         const Array& arr = arr_node.AsArray();
         assert(arr.size() == 3);
         assert(arr.at(0).AsInt() == 1);
-
         assert(LoadJSON("[1,1.23,\"Hello\"]"s).GetRoot() == arr_node);
         assert(LoadJSON(Print(arr_node)).GetRoot() == arr_node);
         assert(LoadJSON(R"(  [ 1  ,  1.23,  "Hello"   ]   )"s).GetRoot() == arr_node);
@@ -344,7 +337,6 @@ namespace json::tests {
         assert(dict.size() == 2);
         assert(dict.at("key1"s).AsString() == "value1"s);
         assert(dict.at("key2"s).AsInt() == 42);
-
         assert(LoadJSON("{ \"key1\": \"value1\", \"key2\": 42 }"s).GetRoot() == dict_node);
         assert(LoadJSON(Print(dict_node)).GetRoot() == dict_node);
         // Пробелы, табуляции и символы перевода строки между токенами JSON файла игнорируются
@@ -415,7 +407,7 @@ namespace json::tests {
                   << std::endl;
     }
 
-    void Tests(){
+    void Tests() {
         Node arr_node = {Array {true, "42"s, Array{}}};
         assert(arr_node.IsArray());
         const Array& arr = arr_node.AsArray();
@@ -445,7 +437,7 @@ namespace json::tests {
         RUN_TEST(Tests);
     };
 
-}
+} // namespace json::tests
 
 namespace tc_project::json_reader::tests {
 
@@ -524,10 +516,10 @@ namespace tc_project::json_reader::tests {
                                                       .Key("unique_stop_count").Value(2).EndDict().Build();
         ASSERT_HINT(test1 == builder_data[0], "Wrong parsing!");
         for(const auto& [key, value] : builder_data[1].AsDict()){
-            if(value.IsInt()){
+            if(value.IsInt()) {
                 ASSERT_HINT(test2.AsDict().at(key).AsInt() == value.AsInt(), "Wrong parsing!");
             }
-            if(value.IsDouble()){
+            if(value.IsDouble()) {
                 ASSERT_HINT(std::abs(test2.AsDict().at(key).AsDouble() - value.AsDouble()) < EPSILON, "Wrong parsing!");
             }
         }
@@ -557,4 +549,5 @@ namespace tc_project::json_reader::tests {
         RUN_TEST(ParseBus);
         RUN_TEST(ParseMap);
     }
-}
+
+} // namespace tc_project::json_reader::tests 

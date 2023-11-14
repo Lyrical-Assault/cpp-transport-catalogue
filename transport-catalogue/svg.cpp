@@ -25,7 +25,7 @@ namespace svg {
         return out << output;
     }
 
-    std::ostream& operator<< (std::ostream& out, const StrokeLineJoin& data){
+    std::ostream& operator<< (std::ostream& out, const StrokeLineJoin& data) {
         std::string output;
         switch (data) {
             case StrokeLineJoin::ARCS:
@@ -49,21 +49,19 @@ namespace svg {
 
     void Object::Render(const RenderContext& context) const {
         context.RenderIndent();
-
         // Делегируем вывод тега своим подклассам
         RenderObject(context);
-
         context.out << std::endl;
     }
 
     // ---------- Circle ------------------
 
-    Circle& Circle::SetCenter(Point center)  {
+    Circle& Circle::SetCenter(Point center) {
         center_ = center;
         return *this;
     }
 
-    Circle& Circle::SetRadius(double radius)  {
+    Circle& Circle::SetRadius(double radius) {
         radius_ = radius;
         return *this;
     }
@@ -78,7 +76,7 @@ namespace svg {
 
     // ---------- PolyLine ------------------
 
-    Polyline& Polyline::AddPoint(Point point){
+    Polyline& Polyline::AddPoint(Point point) {
         if(point.x == 0 && point.y == 0){
             return *this;
         }
@@ -103,37 +101,37 @@ namespace svg {
 
     // ---------- Text ------------------
 
-    Text& Text::SetPosition(Point pos){
+    Text& Text::SetPosition(Point pos) {
         pos_ = pos;
         return *this;
     }
 
-    Text& Text::SetOffset(Point offset){
+    Text& Text::SetOffset(Point offset) {
         offset_ = offset;
         return *this;
     }
 
-    Text& Text::SetFontSize(uint32_t size){
+    Text& Text::SetFontSize(uint32_t size) {
         size_ = size;
         return *this;
     }
 
-    Text& Text::SetFontFamily(std::string font_family){
+    Text& Text::SetFontFamily(std::string font_family) {
         font_family_ = std::move(font_family);
         return *this;
     }
 
-    Text& Text::SetFontWeight(std::string font_weight){
+    Text& Text::SetFontWeight(std::string font_weight) {
         font_weight_ = std::move(font_weight);
         return *this;
     }
 
-    Text& Text::SetData(std::string data){
+    Text& Text::SetData(std::string data) {
         data_ = Shielding(std::move(data));
         return *this;
     }
 
-    void Text::RenderObject(const RenderContext& context) const{
+    void Text::RenderObject(const RenderContext& context) const {
         auto& out = context.out;
         out << "<text";
         RenderAttrs(out);
@@ -186,13 +184,10 @@ namespace svg {
     void Document::Render(std::ostream& out) const {
         out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"sv;
         out << "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n"sv;
-
         RenderContext context(out, 2);
-
         for (const auto& obj : objects_) {
             obj->Render(context.Indented());
         }
-
         out << "</svg>"sv;
     }
 

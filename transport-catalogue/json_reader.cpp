@@ -300,4 +300,4 @@ namespace tc_project::json_reader {
         }
         builder_data_.push_back(json_route_builder);
     }
-}
+} // namespace tc_project::json_reader

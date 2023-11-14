@@ -64,4 +64,4 @@ namespace tc_project::transport_router {
         vertex_id_[name] = {from, to};
     }
 
-}
+} // namespace tc_project::transport_router

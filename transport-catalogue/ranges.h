@@ -14,11 +14,12 @@ namespace ranges {
 
         Range(It begin, It end)
                 : begin_(begin)
-                , end_(end) {
-        }
+                , end_(end) {}
+
         It begin() const {
             return begin_;
         }
+
         It end() const {
             return end_;
         }

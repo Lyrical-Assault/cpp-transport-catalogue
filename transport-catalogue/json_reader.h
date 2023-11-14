@@ -26,7 +26,6 @@ namespace tc_project::json_reader {
 
     class JsonReader {
     public:
-
         template <typename TC, typename MR>
         explicit JsonReader(TC&& catalogue, MR&& renderer)
                 : catalogue_(std::forward<TC>(catalogue)), renderer_(std::forward<MR>(renderer)), handler_(catalogue_, renderer_) {}
@@ -36,7 +35,6 @@ namespace tc_project::json_reader {
         void Process_Requests(std::istream& input, std::ostream& output);
 
     private:
-
         void BasesProcessing();
 
         void StopProcessing(const Dict& stop);
@@ -77,11 +75,15 @@ namespace tc_project::json_reader {
 
         struct StatSettings {
             std::string type;
+
             std::string name;
+
             std::string from;
+
             std::string to;
+
             int id = 0;
         };
     };
 
-}
+} // namespace tc_project::json_reader

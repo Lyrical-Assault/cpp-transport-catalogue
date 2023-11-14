@@ -8,14 +8,12 @@
 #include <string_view>
 #include <unordered_map>
 #include <memory>
-
 #include <vector>
 #include <string>
 
 namespace tc_project::transport_router {
     class TransportRouter {
     private:
-
         struct TransportRouterHasher {
             std::size_t operator()(std::string_view str) const {
                 return sw_hasher_(str);
@@ -28,6 +26,7 @@ namespace tc_project::transport_router {
             }
 
             std::hash<std::string_view> sw_hasher_;
+
             std::hash<size_t> s_hasher_;
         };
 
@@ -67,4 +66,4 @@ namespace tc_project::transport_router {
 
     };
 
-}
+} // namespace tc_project::transport_router

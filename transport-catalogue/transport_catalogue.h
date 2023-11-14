@@ -14,8 +14,9 @@
 #include <tuple>
 #include <optional>
 
-namespace tc_project::transport_catalogue{
-    class TransportCatalogue{
+namespace tc_project::transport_catalogue {
+
+    class TransportCatalogue {
     private:
         struct TransportCatalogueHasher {
             std::size_t operator()(std::string_view str) const {
@@ -40,7 +41,9 @@ namespace tc_project::transport_catalogue{
             }
 
             std::hash<const void*> v_hasher_;
+
             std::hash<std::string_view> sw_hasher_;
+            
             std::hash<double> d_hasher_;
         };
 
@@ -78,4 +81,5 @@ namespace tc_project::transport_catalogue{
 
         std::unordered_map<std::pair<const Stop*, const Stop*>, int, TransportCatalogueHasher> index_stops_distance_;
     };
-}
+
+} // namespace tc_project::transport_catalogue

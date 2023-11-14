@@ -7,28 +7,38 @@
 #include <string_view>
 
 namespace tc_project {
+
     struct Stop {
         std::string name;
+
         geo::Coordinates coordinates;
     };
 
     struct Bus {
         std::string name;
+
         std::vector<const Stop*> stops;
+
         bool is_roundtrip;
     };
 
     struct BusInfo {
         int stops_count;
+
         int unique_stops_count;
+
         int distance;
+        
         double curvature;
     };
 
     struct RouteWeight {
         double weight = 0.0;
+
         int span_count = 0;
+
         std::string_view name;
+
         bool is_waiting = false;
 
         bool operator<(const RouteWeight& other) const {
@@ -48,4 +58,5 @@ namespace tc_project {
     };
 
     inline const double EPSILON = 1e-6;
-}
+    
+} // namespace tc_project

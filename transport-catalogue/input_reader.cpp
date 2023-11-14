@@ -1,13 +1,14 @@
 #include "input_reader.h"
 
-namespace transport_catalogue::input{
-        void ReadInput(TransportCatalogue& catalogue, std::istream& input){
+namespace transport_catalogue::input {
+
+        void ReadInput(TransportCatalogue& catalogue, std::istream& input) {
             int num_req;
             input >> num_req;
             input.ignore();
             std::vector<std::pair<std::string, std::tuple<double, double, std::vector<std::pair<std::string, int>>>>> stop_requests;
             std::vector<std::pair<std::string, std::vector<std::string>>> bus_requests;
-            while (num_req != 0){
+            while (num_req != 0) {
                 std::string query;
                 std::getline(std::cin, query);
                 if (query.substr(0, 4) == "Stop") {
@@ -46,7 +47,7 @@ namespace transport_catalogue::input{
             double longitude = std::stod(temp_str.substr(0, pos));
             temp_str = temp_str.substr(pos + 2);
             std::vector<std::pair<std::string, int>> distance;
-            while (pos != std::string::npos){
+            while (pos != std::string::npos) {
                 pos = temp_str.find_first_of('m');
                 int dist = std::stoi(temp_str.substr(0, pos));
                 temp_str = temp_str.substr(pos + 5);
@@ -57,7 +58,7 @@ namespace transport_catalogue::input{
             return {latitude, longitude, distance};
         }
 
-        std::vector<std::string> ParseBus(const std::string& bus_info){
+        std::vector<std::string> ParseBus(const std::string& bus_info) {
             std::vector<std::string> stops;
             size_t pos = bus_info.find(':');
             std::string str = bus_info.substr(pos + 1);
@@ -86,4 +87,5 @@ namespace transport_catalogue::input{
             }
             return stops;
         }
-    }
+
+    } // namespace transport_catalogue::input

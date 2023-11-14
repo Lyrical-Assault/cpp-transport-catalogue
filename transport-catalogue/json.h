@@ -9,7 +9,9 @@
 namespace json {
 
     class Node;
+
     using Dict = std::map<std::string, Node>;
+
     using Array = std::vector<Node>;
 
     class ParsingError : public std::runtime_error {
@@ -21,11 +23,13 @@ namespace json {
             : private std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string> {
     public:
         using variant::variant;
+
         using Value = variant;
 
         bool IsInt() const {
             return std::holds_alternative<int>(*this);
         }
+
         int AsInt() const {
             using namespace std::literals;
             if (!IsInt()) {
@@ -37,9 +41,11 @@ namespace json {
         bool IsPureDouble() const {
             return std::holds_alternative<double>(*this);
         }
+
         bool IsDouble() const {
             return IsInt() || IsPureDouble();
         }
+
         double AsDouble() const {
             using namespace std::literals;
             if (!IsDouble()) {
@@ -51,6 +57,7 @@ namespace json {
         bool IsBool() const {
             return std::holds_alternative<bool>(*this);
         }
+
         bool AsBool() const {
             using namespace std::literals;
             if (!IsBool()) {
@@ -79,6 +86,7 @@ namespace json {
         bool IsString() const {
             return std::holds_alternative<std::string>(*this);
         }
+
         const std::string& AsString() const {
             using namespace std::literals;
             if (!IsString()) {
@@ -91,6 +99,7 @@ namespace json {
         bool IsDict() const {
             return std::holds_alternative<Dict>(*this);
         }
+        
         const Dict& AsDict() const {
             using namespace std::literals;
             if (!IsDict()) {

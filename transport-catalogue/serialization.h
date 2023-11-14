@@ -16,7 +16,6 @@ namespace tc_project {
 
     class Serialization {
     public:
-
         static void BaseSerialization(const std::filesystem::path& path, const transport_catalogue::TransportCatalogue& transport_catalogue, const map_renderer::MapRenderer& renderer, const transport_router::TransportRouter& transport_router);
 
         static proto_transport_catalogue::TransportCatalogue CatalogueSerialization(const transport_catalogue::TransportCatalogue& transport_catalogue);
@@ -32,4 +31,5 @@ namespace tc_project {
         static transport_router::TransportRouter RouterDeserialization(const std::filesystem::path& path);
 
     };
-}
+
+} // namespace tc_project

@@ -12,6 +12,7 @@
 #include <memory>
 
 namespace tc_project::request_handler {
+
     class RequestHandler {
     public:
         RequestHandler(const transport_catalogue::TransportCatalogue& db, const map_renderer::MapRenderer& renderer);
@@ -28,4 +29,5 @@ namespace tc_project::request_handler {
 
         const map_renderer::MapRenderer& renderer_;
     };
-}
+
+} // namespace tc_project::request_handler

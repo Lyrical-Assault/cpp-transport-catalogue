@@ -26,7 +26,7 @@ namespace json {
 
     Builder::DictItemContext Builder::StartDict() {
         Dict dict;
-        if (!nodes_stack_.empty() && nodes_stack_.back()->IsArray()){
+        if (!nodes_stack_.empty() && nodes_stack_.back()->IsArray()) {
             is_nested_ = true;
         }
         nodes_stack_.emplace_back(std::make_unique<Node>(dict));
@@ -35,7 +35,7 @@ namespace json {
 
     Builder::ArrayItemContext Builder::StartArray() {
         Array arr;
-        if (!nodes_stack_.empty() && nodes_stack_.back()->IsArray()){
+        if (!nodes_stack_.empty() && nodes_stack_.back()->IsArray()) {
             is_nested_ = true;
         }
         nodes_stack_.emplace_back(std::make_unique<Node>(arr));
@@ -97,11 +97,11 @@ namespace json {
         return builder_.Value(std::move(value));
     }
 
-    Builder::DictItemContext Builder::BaseContext::StartDict(){
+    Builder::DictItemContext Builder::BaseContext::StartDict() {
         return builder_.StartDict();
     }
 
-    Builder::ArrayItemContext Builder::BaseContext::StartArray(){
+    Builder::ArrayItemContext Builder::BaseContext::StartArray() {
         return builder_.StartArray();
     }
 
@@ -125,4 +125,4 @@ namespace json {
         return BaseContext::Value(std::move(value));
     }
 
-}
+} // namespace json

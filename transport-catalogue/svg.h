@@ -12,23 +12,30 @@
 
 namespace svg {
 
-    struct Rgb{
+    struct Rgb {
         uint8_t red = 0;
+
         uint8_t green = 0;
+
         uint8_t blue = 0;
 
         Rgb() = default;
+
         Rgb(uint8_t red, uint8_t green, uint8_t blue)
                 : red(red), green(green), blue(blue) {}
     };
 
-    struct Rgba{
+    struct Rgba {
         uint8_t red = 0;
+
         uint8_t green = 0;
+
         uint8_t blue = 0;
+
         double opacity = 1.0;
 
         Rgba() = default;
+
         Rgba(uint8_t red, uint8_t green, uint8_t blue, double opacity)
                 : red(red), green(green), blue(blue), opacity(opacity) {}
     };
@@ -51,11 +58,13 @@ namespace svg {
 
     struct Point {
         Point() = default;
+
         Point(double x, double y)
                 : x(x)
-                , y(y) {
-        }
+                , y(y) {}
+
         double x = 0;
+
         double y = 0;
     };
 
@@ -65,14 +74,12 @@ namespace svg {
  */
     struct RenderContext {
         RenderContext(std::ostream& out)
-                : out(out) {
-        }
+                : out(out) {}
 
         RenderContext(std::ostream& out, int indent_step, int indent = 0)
                 : out(out)
                 , indent_step(indent_step)
-                , indent(indent) {
-        }
+                , indent(indent) {}
 
         RenderContext Indented() const {
             return {out, indent_step, indent + indent_step};
@@ -85,7 +92,9 @@ namespace svg {
         }
 
         std::ostream& out;
+
         int indent_step = 0;
+
         int indent = 0;
     };
 
@@ -100,11 +109,11 @@ namespace svg {
             out << color;
         }
 
-        void operator()(Rgb color) const{
+        void operator()(Rgb color) const {
             out << "rgb(" << static_cast<int>(color.red) << "," << static_cast<int>(color.green) << "," << static_cast<int>(color.blue) << ")";
         }
 
-        void operator()(Rgba color) const{
+        void operator()(Rgba color) const {
             out << "rgba(" << static_cast<int>(color.red) << "," << static_cast<int>(color.green) << "," << static_cast<int>(color.blue) << "," << color.opacity << ")";
         }
 
@@ -128,17 +137,17 @@ namespace svg {
             return AsOwner();
         }
 
-        Owner& SetStrokeWidth(double width){
+        Owner& SetStrokeWidth(double width) {
             stroke_width_ = width;
             return AsOwner();
         }
 
-        Owner& SetStrokeLineCap(StrokeLineCap line_cap){
+        Owner& SetStrokeLineCap(StrokeLineCap line_cap) {
             stroke_linecap_ = line_cap;
             return AsOwner();
         }
 
-        Owner& SetStrokeLineJoin(StrokeLineJoin line_join){
+        Owner& SetStrokeLineJoin(StrokeLineJoin line_join) {
             stroke_linejoin_ = line_join;
             return AsOwner();
         }
@@ -148,7 +157,6 @@ namespace svg {
 
         void RenderAttrs(std::ostream& out) const {
             using namespace std::literals;
-
             if (fill_color_) {
                 out << " fill=\""sv << *fill_color_ << "\""sv;
             }
@@ -174,9 +182,13 @@ namespace svg {
         }
 
         std::optional<Color> fill_color_;
+
         std::optional<Color> stroke_color_;
+
         std::optional<double> stroke_width_;
+
         std::optional<StrokeLineCap> stroke_linecap_;
+
         std::optional<StrokeLineJoin> stroke_linejoin_;
     };
 
@@ -202,12 +214,14 @@ namespace svg {
     class Circle final : public Object, public PathProps<Circle> {
     public:
         Circle& SetCenter(Point center);
+
         Circle& SetRadius(double radius);
 
     private:
         void RenderObject(const RenderContext& context) const override;
 
         Point center_;
+
         double radius_ = 1.0;
     };
 
@@ -217,7 +231,6 @@ namespace svg {
  */
     class Polyline : public Object, public PathProps<Polyline> {
     public:
-
         Polyline& AddPoint(Point point);
 
     private:
@@ -253,19 +266,25 @@ namespace svg {
         // Прочие данные и методы, необходимые для реализации элемента <text>
     private:
         void RenderObject(const RenderContext& context) const override;
+
         static std::string Shielding(std::string str);
+
         Point pos_ = {0.0, 0.0};
+
         Point offset_ = {0.0, 0.0};
+
         uint32_t size_ = 1;
+
         std::string font_family_;
+
         std::string font_weight_;
+
         std::string data_;
     };
 
     class ObjectContainer {
 
     public:
-
         template <typename Obj>
         void Add(Obj obj) {
             AddPtr(std::make_unique<Obj>(std::move(obj)));
@@ -274,7 +293,6 @@ namespace svg {
         virtual void AddPtr(std::unique_ptr<Object>&& obj) = 0;
 
     protected:
-
         ~ObjectContainer() = default;
 
     };
@@ -288,7 +306,6 @@ namespace svg {
 
     class Document : public ObjectContainer {
     public:
-
         // Добавляет в svg-документ объект-наследник svg::Object
         void AddPtr(std::unique_ptr<Object>&& obj) override;
 

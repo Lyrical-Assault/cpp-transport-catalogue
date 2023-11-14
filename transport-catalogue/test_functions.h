@@ -59,7 +59,8 @@ namespace tc_project::transport_catalogue::tests {
     void SetDistance();
     void GetDistance();
     void TransportCatalogueTest();
-}
+
+} // namespace tc_project::transport_catalogue::tests
 
 namespace tc_project::request_handler::tests {
 
@@ -67,9 +68,11 @@ namespace tc_project::request_handler::tests {
     void GetBusesByStop();
     void RenderMap();
     void RequestHandlerTest();
-}
+
+} // namespace tc_project::request_handler::tests
 
 namespace json::tests {
+
     void TestNull();
     void TestNumbers();
     void TestStrings();
@@ -80,7 +83,8 @@ namespace json::tests {
     void Benchmark();
     void Tests();
     void JsonTests();
-}
+
+}  // namespace son::tests
 
 namespace tc_project::json_reader::tests {
 
@@ -90,4 +94,5 @@ namespace tc_project::json_reader::tests {
     void ParseStop();
     void ParseMap();
     void JsonReader();
-}
+
+}  // namespace tc_project::json_reader::tests
